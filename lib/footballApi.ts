@@ -29,7 +29,7 @@ export const getMatchesByMatchday = async ({
 };
 
 export const getCompetitionStandings = async () => {
-  const url = "http://api.football-data.org/v4/competitions/PL/standings";
+  const url = "https://api.football-data.org/v4/competitions/PL/standings";
 
   try {
     const response = await fetch(url, {
