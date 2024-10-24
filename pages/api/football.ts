@@ -1,5 +1,3 @@
-// pages/api/football.ts
-
 import type { NextApiRequest, NextApiResponse } from "next";
 import * as footballApi from "../../lib/footballApi";
 
@@ -20,8 +18,10 @@ export default async function handler(
 
     // Convert params to the correct types
     const typedParams = Object.keys(params).reduce((acc, key) => {
-      acc[key] =
-        params && Array.isArray(params[key]) ? params[key][0] : params[key];
+      const value = params[key];
+      if (value !== undefined) {
+        acc[key] = Array.isArray(value) ? value[0] : value;
+      }
       return acc;
     }, {} as Record<string, any>);
 
