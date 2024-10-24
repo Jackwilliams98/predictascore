@@ -40,7 +40,7 @@ export default function Home() {
         flexDirection: "column",
       }}
     >
-      Home page
+      Home page 1
       <button
         onClick={() => fetchData("getMatchesByMatchday", { matchday: 1 })}
         style={{ padding: 14, backgroundColor: "blue " }}
