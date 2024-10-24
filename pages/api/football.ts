@@ -20,7 +20,8 @@ export default async function handler(
 
     // Convert params to the correct types
     const typedParams = Object.keys(params).reduce((acc, key) => {
-      acc[key] = Array.isArray(params[key]) ? params[key][0] : params[key];
+      acc[key] =
+        params && Array.isArray(params[key]) ? params[key][0] : params[key];
       return acc;
     }, {} as Record<string, any>);
 
