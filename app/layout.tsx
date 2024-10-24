@@ -16,12 +16,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{ margin: 22 }}>
+      <body style={{ margin: "auto", maxWidth: "1200px" }}>
         <header
           style={{
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
+            marginBottom: "16px",
           }}
         >
           <Image
@@ -44,10 +45,15 @@ export default function RootLayout({
               Gambling Gab Football Predictions League
             </span>
             <div style={{ width: "100%" }}>
-              <Link href="/" style={{ paddingRight: 12 }}>
+              <Link href="/" style={{ marginRight: 24 }}>
                 Home
               </Link>
-              <Link href="/profile">Profile</Link>
+              <Link href="/table" style={{ marginRight: 24 }}>
+                Table
+              </Link>
+              <Link href="/profile" style={{ marginRight: 24 }}>
+                Profile
+              </Link>
             </div>
           </div>
         </header>
