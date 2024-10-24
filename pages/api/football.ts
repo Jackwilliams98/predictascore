@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
 import * as footballApi from "../../lib/footballApi";
 
 export default async function handler(
@@ -31,11 +30,15 @@ export default async function handler(
       typedParams.matchday = Number(typedParams.matchday);
     }
 
+    // Log the request details
+    console.log("Requesting API method:", method);
+    console.log("With parameters:", typedParams);
+
     // Use type assertion to inform TypeScript that typedParams has the required properties
     const data = await apiMethod(typedParams as any);
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching data:", error); // Log the error
-    res.status(500).json({ error: "Failed to fetch data" });
+    res.status(500).json({ error: "Failed to fetch data", details: error });
   }
 }
