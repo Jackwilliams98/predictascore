@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Provider } from "@/components/ui/provider";
 
 import "./globals.css";
+import { NavigationHeader } from "@/components";
 
 export const metadata: Metadata = {
   title: "GGFPL",
@@ -15,49 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body style={{ margin: "auto", maxWidth: "1200px" }}>
-        <header
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: "16px",
-          }}
-        >
-          <Image
-            src="/assets/icon.jpeg"
-            alt="Vercel Logo"
-            className="dark:invert"
-            width={100}
-            height={100}
-            priority
-          />
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              paddingLeft: 12,
-            }}
-          >
-            <span style={{ fontSize: 32 }}>
-              Gambling Gab Football Predictions League
-            </span>
-            <div style={{ width: "100%" }}>
-              <Link href="/" style={{ marginRight: 24 }}>
-                Home
-              </Link>
-              <Link href="/table" style={{ marginRight: 24 }}>
-                Table
-              </Link>
-              <Link href="/profile" style={{ marginRight: 24 }}>
-                Profile
-              </Link>
-            </div>
+    <html suppressHydrationWarning lang="en">
+      <body>
+        <Provider>
+          <div className="app-wrapper">
+            <NavigationHeader />
+            {children}
           </div>
-        </header>
-        {children}
+        </Provider>
       </body>
     </html>
   );

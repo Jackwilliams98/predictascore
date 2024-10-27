@@ -10,9 +10,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
+    --foreground-rgb: 246, 252, 223;
     --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --background-end-rgb: 48, 50, 43;
   }
 }
 
@@ -24,6 +24,12 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  padding: 12px;
+}
+
+.app-wrapper {
+  margin: auto;
+  max-width: 1200px;
 }
 
 @layer utilities {
