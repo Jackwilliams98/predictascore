@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+import { Nunito } from "next/font/google";
+
 import { Provider } from "@/components/ui/provider";
 
 import "./globals.css";
@@ -11,13 +11,15 @@ export const metadata: Metadata = {
   description: "The next level football predictions league",
 };
 
+const nunito = Nunito({ subsets: ["latin"] });
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html suppressHydrationWarning lang="en">
+    <html suppressHydrationWarning lang="en" className={nunito.className}>
       <body>
         <Provider>
           <div className="app-wrapper">
