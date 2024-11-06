@@ -4,29 +4,24 @@ import { useEffect, useState } from "react";
 
 import { LeagueTable } from "@/components";
 import { LeagueTableType } from "../types";
-import { fetchData } from "@/utils";
+import { fetchData, transformStandings } from "@/utils";
 
 export default function Table() {
   const [table, setTable] = useState<LeagueTableType[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTable = async () => {
-    setLoading(true);
-    const table = await fetchData("getCompetitionStandings");
-
-    if (!table) {
-      setError("Error fetching data");
-      setLoading(false);
-      return;
-    }
-
-    setTable(table);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    fetchTable();
+    const queryString = new URLSearchParams({
+      method: "getCompetitionStandings",
+    }).toString();
+
+    fetch(`/api/football?${queryString}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTable(data);
+        setLoading(false);
+      });
   }, []);
 
   return (

@@ -21,12 +21,12 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="en" className={nunito.className}>
       <body>
-        <Provider>
-          <div className="app-wrapper">
+        <div className="app-wrapper">
+          <Provider>
             <NavigationHeader />
             {children}
-          </div>
-        </Provider>
+          </Provider>
+        </div>
       </body>
     </html>
   );

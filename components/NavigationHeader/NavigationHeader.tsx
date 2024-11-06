@@ -17,17 +17,16 @@ export const NavigationHeader: React.FC = () => {
   return (
     <header className={classes.header}>
       <Image src="/assets/icon.jpeg" alt="Logo" width={"150px"} />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          paddingLeft: 12,
-        }}
-      >
-        <div style={{ width: "100%" }}>
-          <Tabs.Root defaultValue="/" value={pathname}>
-            <Tabs.List>
+      <div style={{ width: "100%", paddingLeft: 12 }}>
+        <Tabs.Root defaultValue="/" value={pathname}>
+          <Tabs.List
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <div style={{ display: "flex" }}>
               {tabs.map((tab) => (
                 <Tabs.Trigger key={tab.pathname} value={tab.pathname} asChild>
                   <Link
@@ -39,9 +38,14 @@ export const NavigationHeader: React.FC = () => {
                   </Link>
                 </Tabs.Trigger>
               ))}
-            </Tabs.List>
-          </Tabs.Root>
-        </div>
+            </div>
+            <Tabs.Trigger value="/login" asChild>
+              <Link unstyled href="/login" style={{ fontSize: "18px" }}>
+                Login
+              </Link>
+            </Tabs.Trigger>
+          </Tabs.List>
+        </Tabs.Root>
       </div>
     </header>
   );
