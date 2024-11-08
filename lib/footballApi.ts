@@ -1,3 +1,5 @@
+import { transformStandings } from "@/utils";
+
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
   throw new Error("API token is not defined");
@@ -28,18 +30,30 @@ export const getMatchesByMatchday = async ({
   }
 };
 
-export const getCompetitionStandings = async () => {
-  const url = "https://api.football-data.org/v4/competitions/PL/standings";
+interface StandingsResponse {
+  // Define the structure of the response if known
+}
 
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers,
-    });
+export const getCompetitionStandings =
+  async (): Promise<StandingsResponse | null> => {
+    const url = "https://api.football-data.org/v4/competitions/PL/standings";
 
-    return response.json();
-  } catch (error) {
-    console.error("Error fetching data", error);
-    return null;
-  }
-};
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const table = transformStandings(data);
+
+      return table;
+    } catch (error) {
+      console.error("Error fetching data", error);
+      return null;
+    }
+  };
