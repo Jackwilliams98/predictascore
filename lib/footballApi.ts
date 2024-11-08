@@ -29,31 +29,3 @@ export const getMatchesByMatchday = async ({
     return null;
   }
 };
-
-interface StandingsResponse {
-  // Define the structure of the response if known
-}
-
-export const getCompetitionStandings =
-  async (): Promise<StandingsResponse | null> => {
-    const url = "https://api.football-data.org/v4/competitions/PL/standings";
-
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const table = transformStandings(data);
-
-      return table;
-    } catch (error) {
-      console.error("Error fetching data", error);
-      return null;
-    }
-  };
