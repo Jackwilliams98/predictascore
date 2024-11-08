@@ -1,5 +1,5 @@
-"use client";
+import { Login } from "./Login";
 
-export default function Login() {
-  return <div>Login page</div>;
+export default function LoginPage() {
+  return <Login />;
 }

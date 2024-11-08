@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 
 import { Provider } from "@/components/ui/provider";
 
@@ -7,8 +8,8 @@ import "./globals.css";
 import { NavigationHeader } from "@/components";
 
 export const metadata: Metadata = {
-  title: "GGFPL",
-  description: "The next level football predictions league",
+  title: "PredictaScore",
+  description: "The next level football predictions social hub",
 };
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -25,6 +26,7 @@ export default function RootLayout({
           <Provider>
             <NavigationHeader />
             {children}
+            <Analytics />
           </Provider>
         </div>
       </body>
