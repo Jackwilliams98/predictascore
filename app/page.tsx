@@ -9,6 +9,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const url = process.env.NEXT_PUBLIC_BASE_URL;
+
+  console.log("@@@URL@@@: ", url);
+
   useEffect(() => {
     fetch(`/api/gameweek?matchday=1`)
       .then((res) => res.json())
