@@ -1,0 +1,6 @@
+.container {
+  background-color: var(--primary-colour);
+  height: 100px;
+  width: 100%;
+  text-align: center;
+}
