@@ -1,0 +1,122 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum FixtureStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+model User {
+  id                  Int                  @id @default(autoincrement())
+  email               String               @unique
+  name                String?
+  role                Role                 @default(USER)
+  leagues             LeagueMember[]
+  gameweekPredictions GameweekPrediction[]
+  createdLeagues      League[]
+  fixturePredictions  Prediction[]
+}
+
+model League {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime       @default(now())
+  creatorId   Int
+  creator     User           @relation(fields: [creatorId], references: [id])
+  members     LeagueMember[]
+  gameweeks   Gameweek[]
+}
+
+model LeagueMember {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  leagueId Int
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  league   League   @relation(fields: [leagueId], references: [id])
+
+  @@unique([userId, leagueId])
+}
+
+model Gameweek {
+  id          Int                  @id @default(autoincrement())
+  number      Int
+  leagueId    Int
+  league      League               @relation(fields: [leagueId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  deadline    DateTime
+  fixtures    Fixture[]
+  predictions GameweekPrediction[]
+  isComplete  Boolean              @default(false)
+
+  @@unique([leagueId, number])
+}
+
+model Fixture {
+  id          Int           @id @default(autoincrement())
+  gameweekId  Int
+  gameweek    Gameweek      @relation(fields: [gameweekId], references: [id])
+  homeTeam    String
+  awayTeam    String
+  kickoff     DateTime
+  homeScore   Int?
+  awayScore   Int?
+  status      FixtureStatus @default(SCHEDULED)
+  externalId  String?       @unique
+  predictions Prediction[]
+  updatedAt   DateTime      @updatedAt
+
+  @@index([gameweekId])
+}
+
+model GameweekPrediction {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  gameweekId  Int
+  user        User         @relation(fields: [userId], references: [id])
+  gameweek    Gameweek     @relation(fields: [gameweekId], references: [id])
+  predictions Prediction[]
+  submitted   Boolean      @default(false)
+  points      Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([userId, gameweekId])
+}
+
+model Prediction {
+  id                   Int                @id @default(autoincrement())
+  userId               Int
+  fixtureId            Int
+  gameweekPredictionId Int
+  homeScore            Int
+  awayScore            Int
+  points               Int?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  user                 User               @relation(fields: [userId], references: [id])
+  fixture              Fixture            @relation(fields: [fixtureId], references: [id])
+  gameweekPrediction   GameweekPrediction @relation(fields: [gameweekPredictionId], references: [id])
+
+  @@unique([userId, fixtureId])
+  @@index([gameweekPredictionId])
+}
