@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
-import { Nunito } from "next/font/google";
+import { Anonymous_Pro } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 
 import { Provider } from "@/components/ui/provider";
 
 import "./globals.css";
-import { NavigationHeader } from "@/components";
+import { NavigationHeader, PageHeader } from "@/components";
 
 export const metadata: Metadata = {
   title: "PredictaScore",
   description: "The next level football predictions social hub",
 };
 
-const nunito = Nunito({ subsets: ["latin"] });
+const anonymous_Pro = Anonymous_Pro({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
 
 export default function RootLayout({
   children,
@@ -20,15 +23,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html suppressHydrationWarning lang="en" className={nunito.className}>
+    <html
+      suppressHydrationWarning
+      lang="en"
+      className={anonymous_Pro.className}
+    >
       <body>
-        <div className="app-wrapper">
-          <Provider>
-            <NavigationHeader />
-            {children}
-            <Analytics />
-          </Provider>
-        </div>
+        <Provider>
+          <NavigationHeader />
+          <PageHeader />
+          <div className="content">{children}</div>
+          <Analytics />
+        </Provider>
       </body>
     </html>
   );

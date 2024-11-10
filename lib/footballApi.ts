@@ -1,4 +1,5 @@
 import { transformStandings } from "@/utils";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -10,50 +11,22 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-export const getMatchesByMatchday = async ({
-  matchday,
-}: {
-  matchday: number;
-}) => {
+export const getMatchesByMatchday = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+) => {
+  const matchday = req.query.matchday as string;
+  console.log("Matchday:", matchday);
   const url = `https://api.football-data.org/v4/competitions/PL/matches?matchday=${matchday}`;
 
   try {
-    const response = await fetch(url, {
+    const matches = await fetch(url, {
       method: "GET",
       headers,
     });
-
-    return response.json();
+    const data = await matches.json();
+    return res.status(200).json(data);
   } catch (error) {
-    console.error("Error fetching data", error);
-    return null;
+    return res.status(500).json({ error });
   }
 };
-
-interface StandingsResponse {
-  // Define the structure of the response if known
-}
-
-export const getCompetitionStandings =
-  async (): Promise<StandingsResponse | null> => {
-    const url = "https://api.football-data.org/v4/competitions/PL/standings";
-
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const table = transformStandings(data);
-
-      return table;
-    } catch (error) {
-      console.error("Error fetching data", error);
-      return null;
-    }
-  };

@@ -1,0 +1,6 @@
+.table {
+  color: var(--primary-colour);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
