@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 
-import { sql } from "@vercel/postgres";
-
 export default function Home() {
   const [table, setTable] = useState<any>(null);
   const [loading, setLoading] = useState(true);

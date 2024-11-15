@@ -2,21 +2,29 @@ import { LeagueTableType } from "@/app/types";
 import { Card } from "../Card";
 
 import classes from "./LeagueTable.module.css";
-import { Box } from "@chakra-ui/react";
+import { useScreenSize } from "@/utils/useScreenSize";
 
 interface LeageTableProps {
   table: LeagueTableType[];
 }
 
 export const LeagueTable: React.FC<LeageTableProps> = ({ table }) => {
+  const { isDesktop } = useScreenSize();
+
   const tableHeader = (
     <div className={classes.table}>
-      <div style={{ flex: 0.2, fontWeight: 700 }}>Position</div>
+      <div style={{ flex: isDesktop ? 0.2 : 0.5, fontWeight: 700 }}>
+        Position
+      </div>
       <div style={{ flex: 1, fontWeight: 700 }}>Team</div>
-      <div style={{ flex: 0.2, fontWeight: 700 }}>Played</div>
-      <div style={{ flex: 0.2, fontWeight: 700 }}>Won</div>
-      <div style={{ flex: 0.2, fontWeight: 700 }}>Draw</div>
-      <div style={{ flex: 0.2, fontWeight: 700 }}>Lost</div>
+      {isDesktop && (
+        <>
+          <div style={{ flex: 0.2, fontWeight: 700 }}>Played</div>
+          <div style={{ flex: 0.2, fontWeight: 700 }}>Won</div>
+          <div style={{ flex: 0.2, fontWeight: 700 }}>Draw</div>
+          <div style={{ flex: 0.2, fontWeight: 700 }}>Lost</div>
+        </>
+      )}
       <div style={{ flex: 0.2, fontWeight: 700 }}>Points</div>
       <div style={{ flex: 0.2, fontWeight: 700 }}>GD</div>
     </div>
@@ -24,23 +32,27 @@ export const LeagueTable: React.FC<LeageTableProps> = ({ table }) => {
 
   const tableRows = table.map((row) => (
     <div key={row.team.id} className={classes.table}>
-      <div style={{ flex: 0.2 }}>{row.position}</div>
-      <div style={{ flex: 1 }}>{row.team.name}</div>
-      <div style={{ flex: 0.2 }}>{row.playedGames}</div>
-      <div style={{ flex: 0.2 }}>{row.won}</div>
-      <div style={{ flex: 0.2 }}>{row.draw}</div>
-      <div style={{ flex: 0.2 }}>{row.lost}</div>
+      <div style={{ flex: isDesktop ? 0.2 : 0.5 }}>{row.position}</div>
+      <div style={{ flex: 1 }}>
+        {isDesktop ? row.team.name : row.team.shortName}
+      </div>
+      {isDesktop && (
+        <>
+          <div style={{ flex: 0.2 }}>{row.playedGames}</div>
+          <div style={{ flex: 0.2 }}>{row.won}</div>
+          <div style={{ flex: 0.2 }}>{row.draw}</div>
+          <div style={{ flex: 0.2 }}>{row.lost}</div>
+        </>
+      )}
       <div style={{ flex: 0.2 }}>{row.points}</div>
       <div style={{ flex: 0.2 }}>{row.goalDifference}</div>
     </div>
   ));
 
   return (
-    <Box style={{ marginTop: -50 }}>
-      <Card>
-        {tableHeader}
-        {tableRows}
-      </Card>
-    </Box>
+    <Card>
+      {tableHeader}
+      {tableRows}
+    </Card>
   );
 };
