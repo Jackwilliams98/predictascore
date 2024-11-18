@@ -5,6 +5,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Input, Button, Link } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
+import { Card } from "@/components/Card";
 
 type FormValues = {
   email: string;
@@ -28,7 +29,7 @@ export const Login: React.FC = () => {
   });
 
   return (
-    <>
+    <Card>
       <form onSubmit={onSubmit}>
         <Field label="Email" errorText="Email is required">
           <Input
@@ -50,6 +51,6 @@ export const Login: React.FC = () => {
       <div>
         Don&apos;t have an account? <Link href="/register">Register here!</Link>
       </div>
-    </>
+    </Card>
   );
 };

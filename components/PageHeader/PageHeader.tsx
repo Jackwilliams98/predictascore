@@ -11,21 +11,13 @@ import Text from "../Text/Text";
 export const PageHeader: React.FC = () => {
   const pathname = usePathname();
 
-  const pageHeaders = [
-    {
-      pathname: ROUTES.HOME.path,
-      header: ROUTES.HOME.header,
-    },
-    { pathname: ROUTES.TABLE.path, header: ROUTES.TABLE.header },
-    { pathname: ROUTES.LOGIN.path, header: ROUTES.LOGIN.header },
-  ];
-
   return (
     <Box className={classes.container}>
       <Text.Header>
         {
-          pageHeaders.find((pageHeader) => pageHeader.pathname === pathname)
-            ?.header
+          Object.values(ROUTES).find(
+            (pageHeader) => pageHeader.path === pathname,
+          )?.header
         }
       </Text.Header>
     </Box>

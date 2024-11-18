@@ -1,26 +1,11 @@
-// schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
+  url       = env("POSTGRES_PRISMA_URL") // Update to manual URL if needed
   directUrl = env("POSTGRES_URL_NON_POOLING")
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum FixtureStatus {
-  SCHEDULED
-  LIVE
-  FINISHED
-  POSTPONED
-  CANCELLED
 }
 
 model User {
@@ -28,9 +13,9 @@ model User {
   email               String               @unique
   name                String?
   role                Role                 @default(USER)
-  leagues             LeagueMember[]
   gameweekPredictions GameweekPrediction[]
   createdLeagues      League[]
+  leagues             LeagueMember[]
   fixturePredictions  Prediction[]
 }
 
@@ -40,9 +25,9 @@ model League {
   description String?
   createdAt   DateTime       @default(now())
   creatorId   Int
+  gameweeks   Gameweek[]
   creator     User           @relation(fields: [creatorId], references: [id])
   members     LeagueMember[]
-  gameweeks   Gameweek[]
 }
 
 model LeagueMember {
@@ -50,8 +35,8 @@ model LeagueMember {
   userId   Int
   leagueId Int
   joinedAt DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id])
   league   League   @relation(fields: [leagueId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, leagueId])
 }
@@ -60,45 +45,56 @@ model Gameweek {
   id          Int                  @id @default(autoincrement())
   number      Int
   leagueId    Int
-  league      League               @relation(fields: [leagueId], references: [id])
   startDate   DateTime
   endDate     DateTime
   deadline    DateTime
-  fixtures    Fixture[]
-  predictions GameweekPrediction[]
   isComplete  Boolean              @default(false)
+  league      League               @relation(fields: [leagueId], references: [id])
+  fixtures    GameweekFixture[]
+  predictions GameweekPrediction[]
 
   @@unique([leagueId, number])
 }
 
+model GameweekFixture {
+  id         Int      @id @default(autoincrement())
+  gameweekId Int
+  fixtureId  Int
+  fixture    Fixture  @relation(fields: [fixtureId], references: [id])
+  gameweek   Gameweek @relation(fields: [gameweekId], references: [id])
+
+  @@unique([gameweekId, fixtureId])
+  @@index([gameweekId])
+  @@index([fixtureId])
+}
+
 model Fixture {
-  id          Int           @id @default(autoincrement())
-  gameweekId  Int
-  gameweek    Gameweek      @relation(fields: [gameweekId], references: [id])
+  id          Int               @id @default(autoincrement())
   homeTeam    String
   awayTeam    String
   kickoff     DateTime
   homeScore   Int?
   awayScore   Int?
-  status      FixtureStatus @default(SCHEDULED)
-  externalId  String?       @unique
+  status      FixtureStatus     @default(SCHEDULED)
+  externalId  String?           @unique
+  updatedAt   DateTime          @updatedAt
+  gameweeks   GameweekFixture[]
   predictions Prediction[]
-  updatedAt   DateTime      @updatedAt
 
-  @@index([gameweekId])
+  @@index([kickoff])
 }
 
 model GameweekPrediction {
   id          Int          @id @default(autoincrement())
   userId      Int
   gameweekId  Int
-  user        User         @relation(fields: [userId], references: [id])
-  gameweek    Gameweek     @relation(fields: [gameweekId], references: [id])
-  predictions Prediction[]
   submitted   Boolean      @default(false)
   points      Int?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  gameweek    Gameweek     @relation(fields: [gameweekId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  predictions Prediction[]
 
   @@unique([userId, gameweekId])
 }
@@ -113,10 +109,22 @@ model Prediction {
   points               Int?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
-  user                 User               @relation(fields: [userId], references: [id])
   fixture              Fixture            @relation(fields: [fixtureId], references: [id])
   gameweekPrediction   GameweekPrediction @relation(fields: [gameweekPredictionId], references: [id])
+  user                 User               @relation(fields: [userId], references: [id])
 
-  @@unique([userId, fixtureId])
   @@index([gameweekPredictionId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum FixtureStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
 }
