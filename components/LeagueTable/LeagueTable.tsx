@@ -13,10 +13,12 @@ export const LeagueTable: React.FC<LeageTableProps> = ({ table }) => {
 
   const tableHeader = (
     <div className={classes.table}>
-      <div style={{ flex: isDesktop ? 0.2 : 0.5, fontWeight: 700 }}>
-        Position
+      <div
+        style={{ flex: isDesktop ? 0.5 : 0.2, fontWeight: 700, maxWidth: 80 }}
+      >
+        {isDesktop ? "Position" : "Pos"}
       </div>
-      <div style={{ flex: 1, fontWeight: 700 }}>Team</div>
+      <div style={{ flex: isDesktop ? 1 : 0.5, fontWeight: 700 }}>Team</div>
       {isDesktop && (
         <>
           <div style={{ flex: 0.2, fontWeight: 700 }}>Played</div>
@@ -26,14 +28,16 @@ export const LeagueTable: React.FC<LeageTableProps> = ({ table }) => {
         </>
       )}
       <div style={{ flex: 0.2, fontWeight: 700 }}>Points</div>
-      <div style={{ flex: 0.2, fontWeight: 700 }}>GD</div>
+      <div style={{ flex: 0.1, fontWeight: 700 }}>GD</div>
     </div>
   );
 
   const tableRows = table.map((row) => (
     <div key={row.team.id} className={classes.table}>
-      <div style={{ flex: isDesktop ? 0.2 : 0.5 }}>{row.position}</div>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: isDesktop ? 0.5 : 0.2, maxWidth: 80 }}>
+        {row.position}
+      </div>
+      <div style={{ flex: isDesktop ? 1 : 0.5 }}>
         {isDesktop ? row.team.name : row.team.shortName}
       </div>
       {isDesktop && (
@@ -45,7 +49,7 @@ export const LeagueTable: React.FC<LeageTableProps> = ({ table }) => {
         </>
       )}
       <div style={{ flex: 0.2 }}>{row.points}</div>
-      <div style={{ flex: 0.2 }}>{row.goalDifference}</div>
+      <div style={{ flex: 0.1 }}>{row.goalDifference}</div>
     </div>
   ));
 

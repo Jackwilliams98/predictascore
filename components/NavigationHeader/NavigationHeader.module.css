@@ -7,7 +7,7 @@
   height: 60px;
 }
 
-.content {
+.mobileContent {
   max-width: 1200px;
   margin: auto;
   display: flex;
@@ -15,6 +15,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
+}
+
+.desktopContent {
+  display: none;
 }
 
 .tabsList {
@@ -26,8 +30,21 @@
 
 .link {
   color: var(--font-colour);
-  font-size: var(--font-size-medium);
+  font-size: var(--font-size-large);
 }
 
 @media only screen and (min-width: 768px) {
+  .desktopContent {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+  }
+
+  .mobileContent {
+    display: none;
+  }
 }

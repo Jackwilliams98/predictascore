@@ -4,36 +4,54 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // Update to manual URL if needed
+  // url = "postgres://default:b2VPNcRzlpg0@ep-cold-bush-a2mu2k6a-pooler.eu-central-1.aws.neon.tech/verceldb?pgbouncer=true&connect_timeout=15&sslmode=require"
+  // directUrl = "postgres://default:b2VPNcRzlpg0@ep-cold-bush-a2mu2k6a.eu-central-1.aws.neon.tech/verceldb?sslmode=require"
+  url = env("POSTGRES_PRISMA_URL") // Update to manual URL if needed
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum FixtureStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
 model User {
-  id                  Int                  @id @default(autoincrement())
-  email               String               @unique
-  name                String?
+  id            String    @default(cuid()) @id
+  name          String?
+  email         String?   @unique
+  createdAt     DateTime  @default(now()) @map(name: "created_at")
+  updatedAt     DateTime  @updatedAt @map(name: "updated_at")
   role                Role                 @default(USER)
   gameweekPredictions GameweekPrediction[]
   createdLeagues      League[]
   leagues             LeagueMember[]
   fixturePredictions  Prediction[]
+  @@map(name: "users")
 }
 
 model League {
-  id          Int            @id @default(autoincrement())
+  id          String       @id @default(cuid())
   name        String
   description String?
-  createdAt   DateTime       @default(now())
-  creatorId   Int
+  createdAt   DateTime     @default(now())
+  creatorId   String
   gameweeks   Gameweek[]
-  creator     User           @relation(fields: [creatorId], references: [id])
+  creator     User?         @relation(fields: [creatorId], references: [id])
   members     LeagueMember[]
 }
 
 model LeagueMember {
-  id       Int      @id @default(autoincrement())
-  userId   Int
-  leagueId Int
+  id       String   @id @default(cuid())
+  userId   String
+  leagueId String
   joinedAt DateTime @default(now())
   league   League   @relation(fields: [leagueId], references: [id])
   user     User     @relation(fields: [userId], references: [id])
@@ -42,14 +60,14 @@ model LeagueMember {
 }
 
 model Gameweek {
-  id          Int                  @id @default(autoincrement())
+  id          String              @id @default(cuid())
   number      Int
-  leagueId    Int
+  leagueId    String
   startDate   DateTime
   endDate     DateTime
   deadline    DateTime
-  isComplete  Boolean              @default(false)
-  league      League               @relation(fields: [leagueId], references: [id])
+  isComplete  Boolean             @default(false)
+  league      League              @relation(fields: [leagueId], references: [id])
   fixtures    GameweekFixture[]
   predictions GameweekPrediction[]
 
@@ -57,9 +75,9 @@ model Gameweek {
 }
 
 model GameweekFixture {
-  id         Int      @id @default(autoincrement())
-  gameweekId Int
-  fixtureId  Int
+  id         String   @id @default(cuid())
+  gameweekId String
+  fixtureId  String
   fixture    Fixture  @relation(fields: [fixtureId], references: [id])
   gameweek   Gameweek @relation(fields: [gameweekId], references: [id])
 
@@ -69,7 +87,7 @@ model GameweekFixture {
 }
 
 model Fixture {
-  id          Int               @id @default(autoincrement())
+  id          String            @id @default(cuid())
   homeTeam    String
   awayTeam    String
   kickoff     DateTime
@@ -85,9 +103,9 @@ model Fixture {
 }
 
 model GameweekPrediction {
-  id          Int          @id @default(autoincrement())
-  userId      Int
-  gameweekId  Int
+  id          String       @id @default(cuid())
+  userId      String
+  gameweekId  String
   submitted   Boolean      @default(false)
   points      Int?
   createdAt   DateTime     @default(now())
@@ -100,10 +118,10 @@ model GameweekPrediction {
 }
 
 model Prediction {
-  id                   Int                @id @default(autoincrement())
-  userId               Int
-  fixtureId            Int
-  gameweekPredictionId Int
+  id                   String             @id @default(cuid())
+  userId               String
+  fixtureId            String
+  gameweekPredictionId String
   homeScore            Int
   awayScore            Int
   points               Int?
@@ -114,17 +132,4 @@ model Prediction {
   user                 User               @relation(fields: [userId], references: [id])
 
   @@index([gameweekPredictionId])
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum FixtureStatus {
-  SCHEDULED
-  LIVE
-  FINISHED
-  POSTPONED
-  CANCELLED
 }

@@ -1,16 +1,17 @@
 // pages/api/users/index.ts - For operations on users collection
 import { NextApiRequest, NextApiResponse } from "next";
 import { sql } from "@vercel/postgres";
+import { createUser } from "@/lib/userAPI";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   switch (req.method) {
     case "GET":
       return await getUsers(req, res);
     case "POST":
-      return await createUser(req, res);
+      return await createUserHandler(req, res);
     default:
       res.setHeader("Allow", ["GET", "POST"]);
       return res
@@ -28,20 +29,12 @@ async function getUsers(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-async function createUser(req: NextApiRequest, res: NextApiResponse) {
+async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
+  const { name, email } = req.body;
   try {
-    const { name, email } = req.body;
-    if (!name || !email) {
-      return res.status(400).json({ error: "Name and email required" });
-    }
-
-    const user = await sql`
-      INSERT INTO "User" (name, email) 
-      VALUES (${name}, ${email}) 
-      RETURNING *
-    `;
-    return res.status(201).json(user.rows[0]);
+    const user = await createUser(name, email);
+    res.status(201).json(user);
   } catch (error) {
-    return res.status(500).json({ error });
+    res.status(500).json({ error: "Failed to create user" });
   }
 }
