@@ -5,31 +5,33 @@ CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 CREATE TYPE "FixtureStatus" AS ENUM ('SCHEDULED', 'LIVE', 'FINISHED', 'POSTPONED', 'CANCELLED');
 
 -- CreateTable
-CREATE TABLE "User" (
-    "id" SERIAL NOT NULL,
-    "email" TEXT NOT NULL,
+CREATE TABLE "users" (
+    "id" TEXT NOT NULL,
     "name" TEXT,
+    "email" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'USER',
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "League" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "creatorId" INTEGER NOT NULL,
+    "creatorId" TEXT NOT NULL,
 
     CONSTRAINT "League_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "LeagueMember" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "leagueId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "leagueId" TEXT NOT NULL,
     "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "LeagueMember_pkey" PRIMARY KEY ("id")
@@ -37,9 +39,9 @@ CREATE TABLE "LeagueMember" (
 
 -- CreateTable
 CREATE TABLE "Gameweek" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "number" INTEGER NOT NULL,
-    "leagueId" INTEGER NOT NULL,
+    "leagueId" TEXT NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
     "deadline" TIMESTAMP(3) NOT NULL,
@@ -50,16 +52,16 @@ CREATE TABLE "Gameweek" (
 
 -- CreateTable
 CREATE TABLE "GameweekFixture" (
-    "id" SERIAL NOT NULL,
-    "gameweekId" INTEGER NOT NULL,
-    "fixtureId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "gameweekId" TEXT NOT NULL,
+    "fixtureId" TEXT NOT NULL,
 
     CONSTRAINT "GameweekFixture_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Fixture" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "homeTeam" TEXT NOT NULL,
     "awayTeam" TEXT NOT NULL,
     "kickoff" TIMESTAMP(3) NOT NULL,
@@ -74,9 +76,9 @@ CREATE TABLE "Fixture" (
 
 -- CreateTable
 CREATE TABLE "GameweekPrediction" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "gameweekId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "gameweekId" TEXT NOT NULL,
     "submitted" BOOLEAN NOT NULL DEFAULT false,
     "points" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -87,10 +89,10 @@ CREATE TABLE "GameweekPrediction" (
 
 -- CreateTable
 CREATE TABLE "Prediction" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "fixtureId" INTEGER NOT NULL,
-    "gameweekPredictionId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "fixtureId" TEXT NOT NULL,
+    "gameweekPredictionId" TEXT NOT NULL,
     "homeScore" INTEGER NOT NULL,
     "awayScore" INTEGER NOT NULL,
     "points" INTEGER,
@@ -101,7 +103,7 @@ CREATE TABLE "Prediction" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LeagueMember_userId_leagueId_key" ON "LeagueMember"("userId", "leagueId");
@@ -131,34 +133,34 @@ CREATE UNIQUE INDEX "GameweekPrediction_userId_gameweekId_key" ON "GameweekPredi
 CREATE INDEX "Prediction_gameweekPredictionId_idx" ON "Prediction"("gameweekPredictionId");
 
 -- AddForeignKey
-ALTER TABLE "League" ADD CONSTRAINT "League_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "LeagueMember" ADD CONSTRAINT "LeagueMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "League" ADD CONSTRAINT "League_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "LeagueMember" ADD CONSTRAINT "LeagueMember_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Gameweek" ADD CONSTRAINT "Gameweek_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "LeagueMember" ADD CONSTRAINT "LeagueMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GameweekFixture" ADD CONSTRAINT "GameweekFixture_gameweekId_fkey" FOREIGN KEY ("gameweekId") REFERENCES "Gameweek"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Gameweek" ADD CONSTRAINT "Gameweek_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "GameweekFixture" ADD CONSTRAINT "GameweekFixture_fixtureId_fkey" FOREIGN KEY ("fixtureId") REFERENCES "Fixture"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GameweekPrediction" ADD CONSTRAINT "GameweekPrediction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GameweekFixture" ADD CONSTRAINT "GameweekFixture_gameweekId_fkey" FOREIGN KEY ("gameweekId") REFERENCES "Gameweek"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "GameweekPrediction" ADD CONSTRAINT "GameweekPrediction_gameweekId_fkey" FOREIGN KEY ("gameweekId") REFERENCES "Gameweek"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Prediction" ADD CONSTRAINT "Prediction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GameweekPrediction" ADD CONSTRAINT "GameweekPrediction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Prediction" ADD CONSTRAINT "Prediction_fixtureId_fkey" FOREIGN KEY ("fixtureId") REFERENCES "Fixture"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Prediction" ADD CONSTRAINT "Prediction_gameweekPredictionId_fkey" FOREIGN KEY ("gameweekPredictionId") REFERENCES "GameweekPrediction"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Prediction" ADD CONSTRAINT "Prediction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
