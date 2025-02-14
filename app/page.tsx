@@ -1,30 +1,18 @@
-"use client";
-
+import { getUsers } from "@/lib/userAPI";
 import React, { useEffect, useState } from "react";
 
-export default function Home() {
-  const [table, setTable] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function Home() {
+  const users = await getUsers();
 
-  const url = process.env.NEXT_PUBLIC_BASE_URL;
-
-  console.log("@@@URL@@@: ", url);
-
-  useEffect(() => {
-    fetch(`/api/gameweek?matchday=1`)
-      .then((res) => res.json())
-      .then((data) => {
-        setTable(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError(error.message);
-        setLoading(false);
-      });
-  }, []);
-
-  console.log(table);
-
-  return <div>Home page</div>;
+  return (
+    <div>
+      Home page
+      {users.map((user) => (
+        <div key={user.id}>
+          <h2>{user.name}</h2>
+          <p>{user.email}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
