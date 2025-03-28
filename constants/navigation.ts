@@ -14,11 +14,6 @@ export const ROUTES = {
     tab: "Login",
     header: "Login",
   },
-  REGISTER: {
-    path: "/register",
-    tab: "Register",
-    header: "Register",
-  },
   LEAGUES: {
     path: "/leagues",
     tab: "Leagues",
@@ -36,5 +31,4 @@ export const NAVIGATION_ROUTES = [
   ROUTES.TABLE,
   ROUTES.LEAGUES,
   ROUTES.PREDICTIONS,
-  ROUTES.LOGIN,
 ];

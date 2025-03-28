@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Anonymous_Pro } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import { SessionProvider } from "@/providers";
 
 import { Provider } from "@/components/ui/provider";
 
 import "./globals.css";
 import { NavigationHeader, PageHeader } from "@/components";
+import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "PredictaScore",
@@ -17,11 +19,13 @@ const anonymous_Pro = Anonymous_Pro({
   weight: ["400", "700"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html
       suppressHydrationWarning
@@ -29,12 +33,14 @@ export default function RootLayout({
       className={anonymous_Pro.className}
     >
       <body>
-        <Provider>
-          <NavigationHeader />
-          <PageHeader />
-          <div className="content">{children}</div>
-          <Analytics />
-        </Provider>
+        <SessionProvider session={session}>
+          <Provider>
+            <NavigationHeader />
+            <PageHeader />
+            <div className="content">{children}</div>
+            <Analytics />
+          </Provider>
+        </SessionProvider>
       </body>
     </html>
   );

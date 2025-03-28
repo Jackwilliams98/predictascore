@@ -17,9 +17,13 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../ui/drawer";
+import { useSession } from "next-auth/react";
 
 export const NavigationHeader: React.FC = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  const routes = Object.values(NAVIGATION_ROUTES);
 
   return (
     <header className={classes.header}>
@@ -33,13 +37,26 @@ export const NavigationHeader: React.FC = () => {
         />
         <Tabs.Root defaultValue="/" value={pathname}>
           <Tabs.List className={classes.tabsList}>
-            {Object.values(NAVIGATION_ROUTES).map((tab) => (
+            {routes.map((tab) => (
               <Tabs.Trigger key={tab.path} value={tab.path} asChild>
                 <Link unstyled href={tab.path} className={classes.link}>
                   {tab.tab}
                 </Link>
               </Tabs.Trigger>
             ))}
+            {session ? (
+              <Tabs.Trigger value="/account" asChild>
+                <Link unstyled href="/account" className={classes.link}>
+                  Your account
+                </Link>
+              </Tabs.Trigger>
+            ) : (
+              <Tabs.Trigger value="/login" asChild>
+                <Link unstyled href="/login" className={classes.link}>
+                  Login
+                </Link>
+              </Tabs.Trigger>
+            )}
           </Tabs.List>
         </Tabs.Root>
       </Box>
@@ -76,7 +93,7 @@ export const NavigationHeader: React.FC = () => {
                 gap: 24,
               }}
             >
-              {Object.values(NAVIGATION_ROUTES).map((tab) => (
+              {routes.map((tab) => (
                 <Link
                   key={tab.path}
                   unstyled
@@ -89,6 +106,29 @@ export const NavigationHeader: React.FC = () => {
                   {tab.tab}
                 </Link>
               ))}
+              {session ? (
+                <Link
+                  unstyled
+                  href="/account"
+                  style={{
+                    color: "#31511e",
+                  }}
+                  className={classes.link}
+                >
+                  Your account
+                </Link>
+              ) : (
+                <Link
+                  unstyled
+                  href="/login"
+                  style={{
+                    color: "#31511e",
+                  }}
+                  className={classes.link}
+                >
+                  Login
+                </Link>
+              )}
             </DrawerBody>
             <DrawerCloseTrigger />
           </DrawerContent>
