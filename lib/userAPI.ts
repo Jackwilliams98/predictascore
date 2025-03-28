@@ -18,3 +18,20 @@ export const createUser = async (
 export const getUsers = async (): Promise<User[]> => {
   return await prisma.user.findMany();
 };
+
+// Upsert a user
+export const upsertUser = async (
+  email: string,
+  name: string
+): Promise<User> => {
+  return await prisma.user.upsert({
+    where: { email },
+    create: {
+      email,
+      name,
+    },
+    update: {
+      name,
+    },
+  });
+};

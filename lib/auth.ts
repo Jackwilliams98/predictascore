@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import { upsertUser } from "./userAPI";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -44,16 +45,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       const user = {
         email: profile.email,
-        name: profile.name,
+        name: profile.name || "",
       };
 
-      await prisma?.user.upsert({
-        where: { email: user.email },
-        create: user,
-        update: {
-          name: user.name,
-        },
-      });
+      console.log("User profile:", user);
+
+      const { email } = await upsertUser(user.email, user.name);
+
+      console.log("User upserted:", email);
 
       return true;
     },
