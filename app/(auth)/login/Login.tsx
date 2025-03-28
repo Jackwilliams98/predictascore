@@ -3,8 +3,8 @@
 import React from "react";
 
 import { useForm } from "react-hook-form";
-import { Input, Button, Link } from "@chakra-ui/react";
-import { Field } from "@/components/ui/field";
+import { Input, Link } from "@chakra-ui/react";
+import { Button, Field, PasswordInput } from "@/components";
 import { Card } from "@/components/Card";
 
 type FormValues = {
@@ -31,25 +31,34 @@ export const Login: React.FC = () => {
   return (
     <Card>
       <form onSubmit={onSubmit}>
-        <Field label="Email" errorText="Email is required">
+        <Field label="Email">
           <Input
             {...register("email", {
               required: "Email is required",
               validate: (value) => value.includes("@") || "Email is invalid",
             })}
           />
+          {errors.email && (
+            <div style={{ color: "red" }}>{errors.email.message}</div>
+          )}
         </Field>
         <Field label="Password" errorText="Password is required">
-          <Input
+          <PasswordInput
             {...register("password", {
               required: "Password is required",
             })}
           />
+          {errors.password && (
+            <div style={{ color: "red" }}>{errors.password.message}</div>
+          )}
         </Field>
         <Button type="submit">Submit</Button>
       </form>
       <div>
-        Don&apos;t have an account? <Link href="/register">Register here!</Link>
+        Don&apos;t have an account?{" "}
+        <Link href="/register" style={{ color: "green" }}>
+          Register here!
+        </Link>
       </div>
     </Card>
   );

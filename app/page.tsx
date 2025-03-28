@@ -1,5 +1,6 @@
+import React from "react";
+
 import { getUsers } from "@/lib/userAPI";
-import React, { useEffect, useState } from "react";
 
 export default async function Home() {
   const users = await getUsers();

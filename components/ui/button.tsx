@@ -1,24 +1,33 @@
-import type { ButtonProps as ChakraButtonProps } from "@chakra-ui/react"
+import type { ButtonProps as ChakraButtonProps } from "@chakra-ui/react";
 import {
   AbsoluteCenter,
   Button as ChakraButton,
   Span,
   Spinner,
-} from "@chakra-ui/react"
-import { forwardRef } from "react"
+} from "@chakra-ui/react";
+import { forwardRef } from "react";
 
 interface ButtonLoadingProps {
-  loading?: boolean
-  loadingText?: React.ReactNode
+  loading?: boolean;
+  loadingText?: React.ReactNode;
 }
 
 export interface ButtonProps extends ChakraButtonProps, ButtonLoadingProps {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(props, ref) {
-    const { loading, disabled, loadingText, children, ...rest } = props
+    const { loading, disabled, loadingText, children, ...rest } = props;
     return (
-      <ChakraButton disabled={loading || disabled} ref={ref} {...rest}>
+      <ChakraButton
+        disabled={loading || disabled}
+        ref={ref}
+        {...rest}
+        style={{
+          backgroundColor: "#31511e",
+          color: "#fff",
+          margin: "10px 0",
+        }}
+      >
         {loading && !loadingText ? (
           <>
             <AbsoluteCenter display="inline-flex">
@@ -35,6 +44,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           children
         )}
       </ChakraButton>
-    )
-  },
-)
+    );
+  }
+);
