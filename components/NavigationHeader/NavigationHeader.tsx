@@ -1,7 +1,8 @@
 "use client";
 
-import { Box, Icon, Link, Tabs } from "@chakra-ui/react";
+import { Box, Icon, Tabs } from "@chakra-ui/react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import classes from "./NavigationHeader.module.css";
@@ -38,7 +39,7 @@ export const NavigationHeader: React.FC = () => {
           <Tabs.List className={classes.tabsList}>
             {routes.map((tab) => (
               <Tabs.Trigger key={tab.path} value={tab.path} asChild>
-                <Link unstyled href={tab.path} className={classes.link}>
+                <Link href={tab.path} className={classes.link}>
                   {tab.tab}
                 </Link>
               </Tabs.Trigger>
@@ -74,12 +75,7 @@ export const NavigationHeader: React.FC = () => {
               }}
             >
               {routes.map((tab) => (
-                <Link
-                  key={tab.path}
-                  unstyled
-                  href={tab.path}
-                  className={classes.link}
-                >
+                <Link key={tab.path} href={tab.path} className={classes.link}>
                   {tab.tab}
                 </Link>
               ))}

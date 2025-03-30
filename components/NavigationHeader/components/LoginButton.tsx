@@ -1,4 +1,5 @@
-import { Link, Tabs } from "@chakra-ui/react";
+import { Tabs } from "@chakra-ui/react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 import classes from "../NavigationHeader.module.css";
@@ -18,12 +19,12 @@ export const LoginButton: React.FC<{ isDrawer?: boolean }> = ({
     href: string;
   }) => {
     return isDrawer ? (
-      <Link unstyled href={href} className={classes.link}>
+      <Link href={href} className={classes.link}>
         {children}
       </Link>
     ) : (
       <Tabs.Trigger value={href} asChild>
-        <Link unstyled href={href} className={classes.link}>
+        <Link href={href} className={classes.link}>
           {children}
         </Link>
       </Tabs.Trigger>

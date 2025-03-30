@@ -58,5 +58,10 @@
 
   .link {
     color: var(--font-colour);
+    padding-bottom: 16px;
+  }
+
+  .avatar {
+    border-bottom: none;
   }
 }
