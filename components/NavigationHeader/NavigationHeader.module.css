@@ -29,8 +29,14 @@
 }
 
 .link {
-  color: var(--font-colour);
+  color: var(--primary-colour);
   font-size: var(--font-size-large);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 @media only screen and (min-width: 768px) {
@@ -42,9 +48,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 16px;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
   .mobileContent {
     display: none;
+  }
+
+  .link {
+    color: var(--font-colour);
   }
 }

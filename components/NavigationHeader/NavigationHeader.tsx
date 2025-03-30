@@ -17,11 +17,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../ui/drawer";
-import { useSession } from "next-auth/react";
+import { LoginButton } from "./components";
 
 export const NavigationHeader: React.FC = () => {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   const routes = Object.values(NAVIGATION_ROUTES);
 
@@ -44,19 +43,7 @@ export const NavigationHeader: React.FC = () => {
                 </Link>
               </Tabs.Trigger>
             ))}
-            {session ? (
-              <Tabs.Trigger value="/account" asChild>
-                <Link unstyled href="/account" className={classes.link}>
-                  Your account
-                </Link>
-              </Tabs.Trigger>
-            ) : (
-              <Tabs.Trigger value="/login" asChild>
-                <Link unstyled href="/login" className={classes.link}>
-                  Login
-                </Link>
-              </Tabs.Trigger>
-            )}
+            <LoginButton />
           </Tabs.List>
         </Tabs.Root>
       </Box>
@@ -77,14 +64,7 @@ export const NavigationHeader: React.FC = () => {
           </DrawerTrigger>
           <DrawerContent backgroundColor="#fff">
             <DrawerHeader>
-              <DrawerTitle
-                style={{
-                  color: "#31511e",
-                  fontSize: "24px",
-                }}
-              >
-                PredictaScore
-              </DrawerTitle>
+              <DrawerTitle className={classes.link}>PredictaScore</DrawerTitle>
             </DrawerHeader>
             <DrawerBody
               style={{
@@ -98,37 +78,12 @@ export const NavigationHeader: React.FC = () => {
                   key={tab.path}
                   unstyled
                   href={tab.path}
-                  style={{
-                    color: "#31511e",
-                  }}
                   className={classes.link}
                 >
                   {tab.tab}
                 </Link>
               ))}
-              {session ? (
-                <Link
-                  unstyled
-                  href="/account"
-                  style={{
-                    color: "#31511e",
-                  }}
-                  className={classes.link}
-                >
-                  Your account
-                </Link>
-              ) : (
-                <Link
-                  unstyled
-                  href="/login"
-                  style={{
-                    color: "#31511e",
-                  }}
-                  className={classes.link}
-                >
-                  Login
-                </Link>
-              )}
+              <LoginButton isDrawer />
             </DrawerBody>
             <DrawerCloseTrigger />
           </DrawerContent>

@@ -38,21 +38,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ profile }) {
-      if (!profile?.email) {
-        throw new Error("No profile");
+    async signIn({ user }) {
+      if (!user?.email) {
+        throw new Error("No user found");
       }
 
-      const user = {
-        email: profile.email,
-        name: profile.name || "",
-      };
-
-      console.log("User profile:", user);
-
-      const { email } = await upsertUser(user.email, user.name);
-
-      console.log("User upserted:", email);
+      await upsertUser(user);
 
       return true;
     },
