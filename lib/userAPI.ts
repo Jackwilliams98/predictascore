@@ -2,17 +2,17 @@ import prisma from "./prisma";
 import { User as dbUser } from "@prisma/client";
 
 // Create a new user
-// export const createUser = async (
-//   name: string,
-//   email: string
-// ): Promise<User> => {
-//   return await prisma.user.create({
-//     data: {
-//       name,
-//       email,
-//     },
-//   });
-// };
+export const createUser = async (
+  name: string,
+  email: string
+): Promise<dbUser> => {
+  return await prisma.user.create({
+    data: {
+      name,
+      email,
+    },
+  });
+};
 
 // Get all users
 export const getUsers = async (): Promise<dbUser[]> => {
