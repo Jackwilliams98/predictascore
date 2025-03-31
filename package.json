@@ -7,7 +7,7 @@
     "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "db": "npx prisma studio"
+    "db": "npx dotenv -e .env.local -- prisma studio"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
