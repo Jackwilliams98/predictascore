@@ -1,7 +1,8 @@
 "use client";
 
-import { Box, Icon, Link, Tabs } from "@chakra-ui/react";
+import { Box, Icon, Tabs } from "@chakra-ui/react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import classes from "./NavigationHeader.module.css";
@@ -17,11 +18,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../ui/drawer";
-import { useSession } from "next-auth/react";
+import { LoginButton } from "./components";
 
 export const NavigationHeader: React.FC = () => {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   const routes = Object.values(NAVIGATION_ROUTES);
 
@@ -39,24 +39,12 @@ export const NavigationHeader: React.FC = () => {
           <Tabs.List className={classes.tabsList}>
             {routes.map((tab) => (
               <Tabs.Trigger key={tab.path} value={tab.path} asChild>
-                <Link unstyled href={tab.path} className={classes.link}>
+                <Link href={tab.path} className={classes.link}>
                   {tab.tab}
                 </Link>
               </Tabs.Trigger>
             ))}
-            {session ? (
-              <Tabs.Trigger value="/account" asChild>
-                <Link unstyled href="/account" className={classes.link}>
-                  Your account
-                </Link>
-              </Tabs.Trigger>
-            ) : (
-              <Tabs.Trigger value="/login" asChild>
-                <Link unstyled href="/login" className={classes.link}>
-                  Login
-                </Link>
-              </Tabs.Trigger>
-            )}
+            <LoginButton />
           </Tabs.List>
         </Tabs.Root>
       </Box>
@@ -77,14 +65,7 @@ export const NavigationHeader: React.FC = () => {
           </DrawerTrigger>
           <DrawerContent backgroundColor="#fff">
             <DrawerHeader>
-              <DrawerTitle
-                style={{
-                  color: "#31511e",
-                  fontSize: "24px",
-                }}
-              >
-                PredictaScore
-              </DrawerTitle>
+              <DrawerTitle className={classes.link}>PredictaScore</DrawerTitle>
             </DrawerHeader>
             <DrawerBody
               style={{
@@ -94,41 +75,11 @@ export const NavigationHeader: React.FC = () => {
               }}
             >
               {routes.map((tab) => (
-                <Link
-                  key={tab.path}
-                  unstyled
-                  href={tab.path}
-                  style={{
-                    color: "#31511e",
-                  }}
-                  className={classes.link}
-                >
+                <Link key={tab.path} href={tab.path} className={classes.link}>
                   {tab.tab}
                 </Link>
               ))}
-              {session ? (
-                <Link
-                  unstyled
-                  href="/account"
-                  style={{
-                    color: "#31511e",
-                  }}
-                  className={classes.link}
-                >
-                  Your account
-                </Link>
-              ) : (
-                <Link
-                  unstyled
-                  href="/login"
-                  style={{
-                    color: "#31511e",
-                  }}
-                  className={classes.link}
-                >
-                  Login
-                </Link>
-              )}
+              <LoginButton isDrawer />
             </DrawerBody>
             <DrawerCloseTrigger />
           </DrawerContent>

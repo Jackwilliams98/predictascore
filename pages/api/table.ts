@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<StandingsResponse>,
+  res: NextApiResponse<StandingsResponse>
 ) {
   try {
     const data = await getCompetitionStandings();

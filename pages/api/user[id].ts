@@ -3,7 +3,7 @@ import { NextApiResponse, NextApiRequest } from "next";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   const { id } = req.query;
 
@@ -35,7 +35,7 @@ async function getUser(req: NextApiRequest, res: NextApiResponse, id: string) {
 async function updateUser(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string,
+  id: string
 ) {
   try {
     const { name, email } = req.body;
@@ -54,7 +54,7 @@ async function updateUser(
 async function deleteUser(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string,
+  id: string
 ) {
   try {
     await sql`DELETE FROM "User" WHERE id = ${id}`;

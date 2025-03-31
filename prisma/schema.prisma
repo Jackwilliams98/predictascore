@@ -4,9 +4,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  // url = "postgres://default:b2VPNcRzlpg0@ep-cold-bush-a2mu2k6a-pooler.eu-central-1.aws.neon.tech/verceldb?pgbouncer=true&connect_timeout=15&sslmode=require"
-  // directUrl = "postgres://default:b2VPNcRzlpg0@ep-cold-bush-a2mu2k6a.eu-central-1.aws.neon.tech/verceldb?sslmode=require"
-  url = env("POSTGRES_PRISMA_URL") // Update to manual URL if needed
+  url = env("POSTGRES_PRISMA_URL")
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
@@ -27,6 +25,7 @@ model User {
   id            String    @default(cuid()) @id
   name          String?
   email         String?   @unique
+  avatar        String?
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @updatedAt @map(name: "updated_at")
   role                Role                 @default(USER)
@@ -40,11 +39,11 @@ model User {
 model League {
   id          String       @id @default(cuid())
   name        String
-  description String?
   createdAt   DateTime     @default(now())
   creatorId   String
+  joinCode    String       @unique
   gameweeks   Gameweek[]
-  creator     User?         @relation(fields: [creatorId], references: [id])
+  creator     User?        @relation(fields: [creatorId], references: [id])
   members     LeagueMember[]
 }
 
