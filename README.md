@@ -2,7 +2,30 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+### Database Setup with Docker
+
+1. Start the PostgreSQL Docker container:
+
+```bash
+docker-compose up -d
+```
+
+2. Set up your environment variables by creating a `.env.local` file with the following content:
+
+```
+POSTGRES_PRISMA_URL="postgres://postgres:password@localhost:54320/predictascore"
+POSTGRES_URL_NON_POOLING="postgres://postgres:password@localhost:54320/predictascore"
+```
+
+3. Run Prisma migrations to set up your database schema:
+
+```bash
+npm run migrate
+```
+
+### Development Server
+
+Run the development server:
 
 ```bash
 npm run dev
@@ -19,6 +42,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+
+## Useful Commands
+
+- Start the development server: `npm run dev`
+- Run Prisma migrations: `npm run migrate`
+- Open Prisma Studio (database explorer): `npm run db`
+- Build the application: `npm run build`
+- Start the production server: `npm run start`
+- Run linting: `npm run lint`
 
 ## Learn More
 
