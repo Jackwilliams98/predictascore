@@ -7,7 +7,8 @@
     "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "db": "npx dotenv -e .env.local -- prisma studio"
+    "db": "npx dotenv -e .env.local -- prisma studio",
+    "migrate": "npx dotenv -e .env.local -- prisma migrate dev"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
@@ -32,6 +33,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.2",
     "postcss": "^8",
