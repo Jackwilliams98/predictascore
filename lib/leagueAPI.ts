@@ -77,7 +77,7 @@ export const getUserLeagues = async (userId: string | undefined) => {
         name: leagueMember.league.name,
         overallRank: overallRank + 1, // Convert to 1-based rank
         overallPoints: leagueMember.points,
-        gameweekRank: gameweekRank,
+        gameweekRank: gameweekRank || "...",
       };
     })
   );
@@ -90,6 +90,27 @@ export const getLeagueInfo = async (leagueId: string) => {
   return await prisma.league.findUnique({
     where: {
       id: leagueId,
+    },
+  });
+};
+
+// Get all members of a league
+export const getLeagueMembers = async (leagueId: string) => {
+  return await prisma.leagueMember.findMany({
+    where: {
+      leagueId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+    orderBy: {
+      points: "desc", // Order by points in descending order
     },
   });
 };

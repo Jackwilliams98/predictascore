@@ -14,8 +14,8 @@ export default async function Leagues() {
         <ul
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)", // 3 equal columns
-            gap: 20, // Space between items
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: 20,
           }}
         >
           {leagues.map((league) => (
