@@ -54,6 +54,7 @@ model LeagueMember {
   joinedAt DateTime @default(now())
   league   League   @relation(fields: [leagueId], references: [id])
   user     User     @relation(fields: [userId], references: [id])
+  points   Int      @default(0)
 
   @@unique([userId, leagueId])
 }
