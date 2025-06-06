@@ -1,19 +1,22 @@
-import { Avatar } from "@/components";
+import { Avatar, Loading } from "@/components";
 import { Card } from "@/components/Card";
 import Text from "@/components/Text/Text";
-import { getLeagueInfo, getLeagueMembers } from "@/lib/leagueAPI";
-import Image from "next/image";
+import { auth } from "@/lib/auth";
+import { getLeagueInfo, getLeagueMembers, leaveLeague } from "@/lib/leagueAPI";
+import LeaveLeagueButton from "./components/LeaveLeagueButton";
 
 export default async function League({
   params,
 }: {
   params: { leagueId: string };
 }) {
+  const session = await auth();
   const league = await getLeagueInfo(params.leagueId);
   const leagueMembers = await getLeagueMembers(params.leagueId);
 
-  console.log({ league });
-  console.log({ leagueMembers });
+  if (!session || !league || !leagueMembers) {
+    return <Loading />;
+  }
 
   return (
     <div>
@@ -66,7 +69,11 @@ export default async function League({
           );
         })}
       </Card>
-      <div></div>
+      <LeaveLeagueButton
+        leagueName={league.name}
+        leagueId={params.leagueId}
+        userId={session.user.id}
+      />
     </div>
   );
 }

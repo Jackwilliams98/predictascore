@@ -2,6 +2,8 @@ import { getUserLeagues } from "@/lib/leagueAPI";
 import { auth } from "@/lib/auth";
 import { Card } from "@/components/Card";
 import Text from "@/components/Text/Text";
+import { Button } from "@/components";
+import Link from "next/link";
 
 export default async function Leagues() {
   const session = await auth();
@@ -47,6 +49,22 @@ export default async function Leagues() {
       ) : (
         <div>No leagues found</div>
       )}
+      <div
+        style={{
+          gap: 20,
+          display: "flex",
+          flexDirection: "row",
+          marginTop: 20,
+          flexWrap: "wrap",
+        }}
+      >
+        <Link href="/leagues/create-a-league" passHref>
+          <Button fontSize={24}>Create a league</Button>
+        </Link>
+        <Link href="/leagues/join-a-league" passHref>
+          <Button fontSize={24}>Join a league</Button>
+        </Link>
+      </div>
     </div>
   );
 }
