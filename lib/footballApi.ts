@@ -13,10 +13,9 @@ const headers = {
 
 export const getMatchesByMatchday = async (
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) => {
   const matchday = req.query.matchday as string;
-  console.log("Matchday:", matchday);
   const url = `https://api.football-data.org/v4/competitions/PL/matches?matchday=${matchday}`;
 
   try {
