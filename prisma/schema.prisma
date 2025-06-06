@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url = env("POSTGRES_PRISMA_URL")
+  url       = env("POSTGRES_PRISMA_URL")
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
@@ -21,56 +21,102 @@ enum FixtureStatus {
   CANCELLED
 }
 
+enum GameweekStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+}
+
 model User {
-  id            String    @default(cuid()) @id
-  name          String?
-  email         String?   @unique
-  avatar        String?
-  createdAt     DateTime  @default(now()) @map(name: "created_at")
-  updatedAt     DateTime  @updatedAt @map(name: "updated_at")
+  id                  String               @id @default(cuid())
+  name                String?
+  email               String?              @unique
+  avatar              String?
+  createdAt           DateTime             @default(now()) @map(name: "created_at")
+  updatedAt           DateTime             @updatedAt @map(name: "updated_at")
   role                Role                 @default(USER)
   gameweekPredictions GameweekPrediction[]
   createdLeagues      League[]
   leagues             LeagueMember[]
   fixturePredictions  Prediction[]
+
   @@map(name: "users")
 }
 
+// TODO: Cron job to create a new season every year, archive the previous one, and set the new one as active
+model Season {
+  id                 String               @id @default(cuid())
+  name               String // e.g., "2023/2024"
+  startDate          DateTime
+  endDate            DateTime
+  isActive           Boolean              @default(false) // Indicates the current active season
+  currentGameweekId  String?              @unique // Mark this field as unique
+  currentGameweek    Gameweek?            @relation("CurrentGameweek", fields: [currentGameweekId], references: [id])
+  gameweeks          Gameweek[]           @relation("SeasonGameweeks")
+  leagues            LeagueSeason[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  LeagueMember       LeagueMember[]
+  GameweekPrediction GameweekPrediction[]
+}
+
 model League {
-  id          String       @id @default(cuid())
-  name        String
-  createdAt   DateTime     @default(now())
-  creatorId   String
-  joinCode    String       @unique
-  gameweeks   Gameweek[]
-  creator     User?        @relation(fields: [creatorId], references: [id])
-  members     LeagueMember[]
+  id                String         @id @default(cuid())
+  name              String
+  createdAt         DateTime       @default(now())
+  creatorId         String
+  joinCode          String         @unique
+  creator           User?          @relation(fields: [creatorId], references: [id])
+  members           LeagueMember[]
+  seasons           LeagueSeason[] // Link to seasons through a join table
+  currentGameweekId String? // Optional: Points to the current active gameweek for this league
+  currentGameweek   Gameweek?      @relation(fields: [currentGameweekId], references: [id])
+}
+
+model LeagueSeason {
+  id         String   @id @default(cuid())
+  leagueId   String
+  seasonId   String
+  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  season     Season   @relation(fields: [seasonId], references: [id])
+  isArchived Boolean  @default(false) // Indicates if the league is archived for this season
+  createdAt  DateTime @default(now())
+
+  @@unique([leagueId, seasonId]) // Ensure a league can only be linked to a season once
 }
 
 model LeagueMember {
-  id       String   @id @default(cuid())
+  id       String    @id @default(cuid())
   userId   String
   leagueId String
-  joinedAt DateTime @default(now())
-  league   League   @relation(fields: [leagueId], references: [id])
-  user     User     @relation(fields: [userId], references: [id])
+  seasonId String
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+  league   League    @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  season   Season    @relation(fields: [seasonId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+  points   Int       @default(0)
 
-  @@unique([userId, leagueId])
+  @@unique([userId, leagueId, seasonId]) // Ensure unique membership per league and season
 }
 
+// TODO: Cron job to create a new gameweek every week, archive the previous one, and set the new one as active
 model Gameweek {
-  id          String              @id @default(cuid())
-  number      Int
-  leagueId    String
-  startDate   DateTime
-  endDate     DateTime
-  deadline    DateTime
-  isComplete  Boolean             @default(false)
-  league      League              @relation(fields: [leagueId], references: [id])
-  fixtures    GameweekFixture[]
-  predictions GameweekPrediction[]
+  id            String               @id @default(cuid())
+  number        Int
+  seasonId      String
+  startDate     DateTime
+  endDate       DateTime
+  deadline      DateTime
+  status        GameweekStatus       @default(UPCOMING) // Status of the gameweek
+  isComplete    Boolean              @default(false)
+  season        Season               @relation("SeasonGameweeks", fields: [seasonId], references: [id])
+  currentSeason Season?              @relation("CurrentGameweek")
+  fixtures      GameweekFixture[]
+  predictions   GameweekPrediction[]
+  League        League[]
 
-  @@unique([leagueId, number])
+  @@unique([seasonId, number]) // Ensure unique gameweek numbers within a season
 }
 
 model GameweekFixture {
@@ -105,11 +151,14 @@ model GameweekPrediction {
   id          String       @id @default(cuid())
   userId      String
   gameweekId  String
+  seasonId    String
+  leagueId    String // Optional: Link to a specific league
   submitted   Boolean      @default(false)
   points      Int?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   gameweek    Gameweek     @relation(fields: [gameweekId], references: [id])
+  season      Season       @relation(fields: [seasonId], references: [id])
   user        User         @relation(fields: [userId], references: [id])
   predictions Prediction[]
 

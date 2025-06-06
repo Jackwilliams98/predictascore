@@ -7,23 +7,32 @@ import {
 } from "@chakra-ui/react";
 import { forwardRef } from "react";
 
-interface ButtonLoadingProps {
+interface CustomButtonProps {
   loading?: boolean;
   loadingText?: React.ReactNode;
+  buttonType?: "delete" | "default" | "neutral";
 }
 
-export interface ButtonProps extends ChakraButtonProps, ButtonLoadingProps {}
+export interface ButtonProps extends ChakraButtonProps, CustomButtonProps {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(props, ref) {
-    const { loading, disabled, loadingText, children, ...rest } = props;
+    const { buttonType, loading, disabled, loadingText, children, ...rest } =
+      props;
+
+    const backgroundColours = {
+      delete: "#c53030",
+      default: "#31511e",
+      neutral: "#666",
+    };
+
     return (
       <ChakraButton
         disabled={loading || disabled}
         ref={ref}
         {...rest}
         style={{
-          backgroundColor: "#31511e",
+          backgroundColor: backgroundColours[buttonType || "default"],
           color: "#fff",
           margin: "10px 0",
         }}

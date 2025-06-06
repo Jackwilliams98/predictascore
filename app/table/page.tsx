@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { LeagueTable } from "@/components";
+import { LeagueTable, Loading } from "@/components";
 import { LeagueTableType } from "../types";
 
 export default function Table() {
@@ -28,9 +28,10 @@ export default function Table() {
       style={{
         display: "flex",
         flexDirection: "column",
+        alignItems: "center",
       }}
     >
-      {loading ? <>Loading</> : table && <LeagueTable table={table} />}
+      {loading ? <Loading /> : table && <LeagueTable table={table} />}
       {error && <div>{error}</div>}
     </div>
   );

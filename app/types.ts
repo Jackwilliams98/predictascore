@@ -19,3 +19,11 @@ export type TeamType = {
   tla: string;
   crest: string;
 };
+
+export type UserLeagueInfo = {
+  id: string;
+  name: string;
+  overallRank: number;
+  overallPoints: number;
+  gameweekRank: string | number;
+};

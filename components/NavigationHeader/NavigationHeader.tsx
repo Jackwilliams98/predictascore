@@ -22,6 +22,7 @@ import { LoginButton } from "./components";
 
 export const NavigationHeader: React.FC = () => {
   const pathname = usePathname();
+  const basePath = `/${pathname?.split("/")[1]}`;
 
   const routes = Object.values(NAVIGATION_ROUTES);
 
@@ -35,7 +36,7 @@ export const NavigationHeader: React.FC = () => {
           height={80}
           priority
         />
-        <Tabs.Root defaultValue="/" value={pathname}>
+        <Tabs.Root defaultValue="/" value={basePath}>
           <Tabs.List className={classes.tabsList}>
             {routes.map((tab) => (
               <Tabs.Trigger key={tab.path} value={tab.path} asChild>
