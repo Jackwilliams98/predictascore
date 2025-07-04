@@ -1,0 +1,212 @@
+import { getActiveUserLeagues } from "./leagueAPI";
+import prisma from "./prisma";
+
+import {
+  GameweekFixture,
+  GameweekInfo,
+  UserPredictionLeagueInfo,
+} from "@/app/types";
+
+export const getUserPredictionLeagues = async (
+  userId: string
+): Promise<UserPredictionLeagueInfo[]> => {
+  if (!userId) {
+    console.error("Error: userId is undefined");
+    return [];
+  }
+
+  const userLeagues = await getActiveUserLeagues(userId);
+
+  const leaguesWithInfo = await Promise.all(
+    userLeagues.map(async (leagueMember) => {
+      const league = await prisma.league.findUnique({
+        where: { id: leagueMember.leagueId },
+        include: {
+          currentGameweek: { select: { id: true, deadline: true } },
+        },
+      });
+
+      if (!league || !league.currentGameweek) {
+        return {
+          id: leagueMember.leagueId,
+          name: leagueMember.league.name,
+          deadline: "", // No current gameweek
+          isSubmitted: false,
+        };
+      }
+
+      const currentGameweekId = league.currentGameweek.id;
+
+      // Check if the user has submitted predictions for the current gameweek
+      const userGameweekPrediction = await prisma.gameweekPrediction.findFirst({
+        where: {
+          userId,
+          gameweekId: currentGameweekId,
+        },
+      });
+      const isSubmitted = !!userGameweekPrediction;
+
+      return {
+        id: league.id,
+        name: league.name,
+        currentGameweekId,
+        deadline: league.currentGameweek.deadline.toISOString(),
+        isSubmitted,
+      };
+    })
+  );
+
+  return leaguesWithInfo;
+};
+
+export const getGameweekPredictions = async (
+  userId: string,
+  gameweekId: string
+): Promise<GameweekInfo | null> => {
+  if (!userId || !gameweekId) {
+    console.error("Error: userId or gameweekId is undefined");
+    return null;
+  }
+
+  const gameweekInfo = await prisma.gameweek.findUnique({
+    where: { id: gameweekId },
+    include: {
+      fixtures: {
+        include: {
+          fixture: {
+            select: {
+              id: true,
+              homeTeam: true,
+              awayTeam: true,
+              kickoff: true,
+            },
+          },
+        },
+      },
+      predictions: {
+        where: { userId },
+        include: {
+          predictions: {
+            select: {
+              fixtureId: true,
+              homeScore: true,
+              awayScore: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!gameweekInfo) {
+    console.error("Error: Gameweek not found");
+    return null;
+  }
+
+  const fixturesWithPredictions = gameweekInfo?.fixtures.map((fixture) => {
+    const prediction = gameweekInfo?.predictions.find((pred) =>
+      pred.predictions.some((p) => p.fixtureId === fixture.fixture.id)
+    );
+    const predictionDetails = prediction
+      ? prediction.predictions.find((p) => p.fixtureId === fixture.fixture.id)
+      : null;
+
+    return {
+      id: fixture.fixture.id,
+      homeTeam: fixture.fixture.homeTeam,
+      awayTeam: fixture.fixture.awayTeam,
+      kickoff: fixture.fixture.kickoff.toISOString(),
+      prediction: predictionDetails
+        ? {
+            homeScore: predictionDetails.homeScore,
+            awayScore: predictionDetails.awayScore,
+          }
+        : null,
+    };
+  });
+
+  return {
+    gameweekNumber: gameweekInfo.number,
+    startDate: gameweekInfo.startDate.toISOString(),
+    endDate: gameweekInfo.endDate.toISOString(),
+    deadline: gameweekInfo.deadline.toISOString(),
+    fixtures: fixturesWithPredictions,
+  };
+};
+
+type PredictionInput = {
+  [fixtureId: string]: {
+    homeScore: number;
+    awayScore: number;
+  };
+};
+
+export const upsertGameweekPredictions = async (
+  userId: string,
+  gameweekId: string,
+  predictions: PredictionInput[]
+): Promise<GameweekFixture | null> => {
+  if (!userId || !gameweekId || !predictions) {
+    console.error("Error: userId, gameweekId, or prediction is undefined");
+    return null;
+  }
+
+  const league = await prisma.leagueMember.findFirst({
+    where: {
+      userId,
+      league: {
+        currentGameweek: {
+          id: gameweekId,
+        },
+      },
+    },
+    select: {
+      seasonId: true,
+      leagueId: true,
+    },
+  });
+
+  if (!league) {
+    console.error("Error: League not found for user and gameweek");
+    return null;
+  }
+
+  const { seasonId, leagueId } = league;
+
+  const gwPrediction = await prisma.gameweekPrediction.upsert({
+    where: {
+      userId_gameweekId: {
+        userId,
+        gameweekId,
+      },
+    },
+    update: {},
+    create: {
+      userId,
+      leagueId,
+      gameweekId,
+      seasonId,
+    },
+    include: { predictions: true },
+  });
+
+  Object.entries(predictions).map(async ([fixtureId, prediction]) => {
+    await prisma.prediction.upsert({
+      where: {
+        gameweekPredictionId: gwPrediction.id,
+        fixtureId,
+      },
+      update: {
+        homeScore: prediction.homeScore,
+        awayScore: prediction.awayScore,
+      },
+      create: {
+        gameweekPredictionId: gwPrediction.id,
+        fixtureId,
+        homeScore: prediction.homeScore,
+        awayScore: prediction.awayScore,
+      },
+    });
+  });
+  return null;
+};

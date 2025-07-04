@@ -1,6 +1,6 @@
 import { generateJoinCode } from "@/utils";
 import prisma from "./prisma";
-import { UserLeagueInfo } from "@/app/types";
+import { League, UserLeagueInfo } from "@/app/types";
 
 export const getCurrentSeason = async () => {
   const season = await prisma.season.findFirst({
@@ -10,9 +10,9 @@ export const getCurrentSeason = async () => {
   return season;
 };
 
-export const getUserLeagues = async (
+export const getActiveUserLeagues = async (
   userId: string | undefined
-): Promise<UserLeagueInfo[]> => {
+): Promise<League[]> => {
   if (!userId) {
     console.error("Error: userId is undefined");
     return [];
@@ -36,8 +36,21 @@ export const getUserLeagues = async (
   // Filter out any leagueMembers where league is null (shouldn't happen, but for safety)
   const validUserLeagues = userLeagues.filter((lm) => lm.league);
 
+  return validUserLeagues;
+};
+
+export const getUserLeagues = async (
+  userId: string | undefined
+): Promise<UserLeagueInfo[]> => {
+  if (!userId) {
+    console.error("Error: userId is undefined");
+    return [];
+  }
+
+  const userLeagues = await getActiveUserLeagues(userId);
+
   const leaguesWithRank = await Promise.all(
-    validUserLeagues.map(async (leagueMember) => {
+    userLeagues.map(async (leagueMember) => {
       // Calculate overall rank
       const overallRank = await prisma.leagueMember.count({
         where: {

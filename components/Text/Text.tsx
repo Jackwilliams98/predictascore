@@ -9,7 +9,7 @@ const HeaderText = (props: TextProps) => (
 );
 
 const TitleText = (props: TextProps) => (
-  <ChakraText className={classes.title} as="h2" {...props} />
+  <ChakraText className={classes.subtitle} as="h2" {...props} />
 );
 
 Text.Header = HeaderText;

@@ -1,3 +1,8 @@
 .title {
   font-size: var(--font-size-large);
 }
+
+.subtitle {
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-bold);
+}
