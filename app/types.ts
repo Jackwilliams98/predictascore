@@ -64,9 +64,14 @@ export type UserPredictionLeagueInfo = {
 };
 
 export type GameweekInfo = {
+  gameweekId: string;
   gameweekNumber: number;
   startDate: string;
   endDate: string;
   deadline: string;
   fixtures: GameweekFixture[];
+};
+
+export type UserPredictions = {
+  [fixtureId: string]: GameweekPrediction;
 };

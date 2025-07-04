@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db": "npx dotenv -e .env.local -- prisma studio",
-    "migrate": "npx dotenv -e .env.local -- prisma migrate dev"
+    "migrate": "npx dotenv -e .env.local -- prisma migrate dev",
+    "local-generate": "npx dotenv -e .env.local -- prisma generate"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",

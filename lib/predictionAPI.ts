@@ -5,6 +5,7 @@ import {
   GameweekFixture,
   GameweekInfo,
   UserPredictionLeagueInfo,
+  UserPredictions,
 } from "@/app/types";
 
 export const getUserPredictionLeagues = async (
@@ -126,6 +127,7 @@ export const getGameweekPredictions = async (
   });
 
   return {
+    gameweekId,
     gameweekNumber: gameweekInfo.number,
     startDate: gameweekInfo.startDate.toISOString(),
     endDate: gameweekInfo.endDate.toISOString(),
@@ -134,17 +136,10 @@ export const getGameweekPredictions = async (
   };
 };
 
-type PredictionInput = {
-  [fixtureId: string]: {
-    homeScore: number;
-    awayScore: number;
-  };
-};
-
 export const upsertGameweekPredictions = async (
   userId: string,
   gameweekId: string,
-  predictions: PredictionInput[]
+  predictions: UserPredictions
 ): Promise<GameweekFixture | null> => {
   if (!userId || !gameweekId || !predictions) {
     console.error("Error: userId, gameweekId, or prediction is undefined");
@@ -187,26 +182,29 @@ export const upsertGameweekPredictions = async (
       gameweekId,
       seasonId,
     },
-    include: { predictions: true },
   });
 
-  Object.entries(predictions).map(async ([fixtureId, prediction]) => {
+  for (const [fixtureId, prediction] of Object.entries(predictions)) {
     await prisma.prediction.upsert({
       where: {
-        gameweekPredictionId: gwPrediction.id,
-        fixtureId,
+        gameweekPredictionId_fixtureId: {
+          gameweekPredictionId: gwPrediction.id,
+          fixtureId,
+        },
       },
       update: {
         homeScore: prediction.homeScore,
         awayScore: prediction.awayScore,
       },
       create: {
-        gameweekPredictionId: gwPrediction.id,
+        userId,
         fixtureId,
+        gameweekPredictionId: gwPrediction.id,
         homeScore: prediction.homeScore,
         awayScore: prediction.awayScore,
       },
     });
-  });
+  }
+
   return null;
 };

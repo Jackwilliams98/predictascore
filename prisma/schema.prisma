@@ -180,4 +180,5 @@ model Prediction {
   user                 User               @relation(fields: [userId], references: [id])
 
   @@index([gameweekPredictionId])
+  @@unique([gameweekPredictionId, fixtureId])
 }

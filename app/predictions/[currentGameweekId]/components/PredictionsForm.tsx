@@ -5,34 +5,45 @@ import { Card } from "@/components/Card";
 import Text from "@/components/Text/Text";
 import { Button } from "@/components";
 import Link from "next/link";
-import { GameweekInfo } from "@/app/types";
+import { GameweekInfo, UserPredictions } from "@/app/types";
 import ScorePredictor from "./ScorePredictor";
-
-type Prediction = {
-  home?: number;
-  away?: number;
-};
-
-type PredictionsState = {
-  [fixtureId: string]: Prediction;
-};
+import { upsertGameweekPredictions } from "@/lib/predictionAPI";
+import { useSession } from "next-auth/react";
 
 export default function PredictionsForm({
   gameweek,
 }: {
   gameweek: GameweekInfo;
 }) {
-  const initialPredictions: PredictionsState = {};
+  const { data: session } = useSession();
+  const initialPredictions: UserPredictions = {};
   gameweek.fixtures.forEach((fixture) => {
     initialPredictions[fixture.id] = {
-      home: fixture.prediction?.homeScore || 0,
-      away: fixture.prediction?.awayScore || 0,
+      homeScore: fixture.prediction?.homeScore || 0,
+      awayScore: fixture.prediction?.awayScore || 0,
     };
   });
   const [predictions, setPredictions] =
-    useState<PredictionsState>(initialPredictions);
+    useState<UserPredictions>(initialPredictions);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  if (!session) {
+    return (
+      <Text>
+        You must be{" "}
+        <Link href="/login" className="text-blue-500">
+          logged in
+        </Link>{" "}
+        to submit predictions.
+      </Text>
+    );
+  }
 
   const handleChange = (fixtureId: string, team: string, score: number) => {
+    console.log(`Updating ${team} score for fixture ${fixtureId} to ${score}`);
+
     setPredictions((prev) => ({
       ...prev,
       [fixtureId]: {
@@ -41,10 +52,38 @@ export default function PredictionsForm({
       },
     }));
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission logic here
     console.log("Form submitted: ", predictions);
+    const body = JSON.stringify({
+      userId: session?.user.id,
+      gameweekId: gameweek.gameweekId,
+      predictions,
+    });
+
+    try {
+      const response = await fetch("/api/predictions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+
+      console.log("Response from API:", response);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed submit predictions");
+      }
+
+      setSuccess(`Predictions submitted successfully!`);
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,8 +107,8 @@ export default function PredictionsForm({
             </Text>
             <ScorePredictor
               homeTeam={homeTeam}
-              homeScore={predictions[id]?.home || 0}
-              awayScore={predictions[id]?.away || 0}
+              homeScore={predictions[id]?.homeScore || 0}
+              awayScore={predictions[id]?.awayScore || 0}
               awayTeam={awayTeam}
               fixtureId={id}
               handleChange={handleChange}

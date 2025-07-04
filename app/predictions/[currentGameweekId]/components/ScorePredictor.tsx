@@ -27,7 +27,7 @@ const ScorePredictor: React.FC<ScorePredictorProps> = ({
           <label>
             {homeTeam}
             <ScoreEditor
-              team="home"
+              team="homeScore"
               value={homeScore}
               fixtureId={fixtureId}
               onChange={handleChange}
@@ -39,7 +39,7 @@ const ScorePredictor: React.FC<ScorePredictorProps> = ({
           <label>
             {awayTeam}
             <ScoreEditor
-              team="away"
+              team="awayScore"
               value={awayScore}
               fixtureId={fixtureId}
               onChange={handleChange}
