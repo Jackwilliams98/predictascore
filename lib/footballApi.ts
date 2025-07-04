@@ -1,4 +1,3 @@
-import { transformStandings } from "@/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
