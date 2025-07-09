@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Box, Icon, Tabs } from "@chakra-ui/react";
+import { Box, IconButton, Tabs } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -62,9 +62,9 @@ export const NavigationHeader: React.FC = () => {
         <DrawerRoot open={open} onOpenChange={(e) => setOpen(e.open)}>
           <DrawerBackdrop />
           <DrawerTrigger asChild>
-            <Icon fontSize="2xl">
+            <IconButton>
               <AiOutlineMenu />
-            </Icon>
+            </IconButton>
           </DrawerTrigger>
           <DrawerContent backgroundColor="#fff">
             <DrawerHeader>

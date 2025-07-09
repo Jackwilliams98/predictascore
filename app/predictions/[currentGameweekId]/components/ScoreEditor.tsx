@@ -1,4 +1,10 @@
 import React from "react";
+import { Icon } from "@chakra-ui/react";
+import { AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineMinus } from "react-icons/ai";
+
+import { Button } from "@/components";
+import Text from "@/components/Text/Text";
 
 interface ScoreEditorProps {
   team: string;
@@ -26,27 +32,36 @@ const ScoreEditor: React.FC<ScoreEditorProps> = ({
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <button type="button" onClick={handleDecrement} disabled={value <= min}>
-        -
-      </button>
-      <input
-        type="number"
-        value={value}
-        min={min}
-        max={max}
-        step={step}
-        onChange={(e) => {
-          const newValue = Number(e.target.value);
-          if (newValue >= min && newValue <= max) {
-            onChange(fixtureId, team, newValue);
-          }
-        }}
-        style={{ width: 50, textAlign: "center" }}
-      />
-      <button type="button" onClick={handleIncrement} disabled={value >= max}>
-        +
-      </button>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "space-around",
+        maxWidth: 200,
+      }}
+    >
+      <Button
+        type="button"
+        style={{ aspectRatio: "1" }}
+        onClick={handleIncrement}
+        disabled={value >= max}
+      >
+        <Icon name="add">
+          <AiOutlinePlus />
+        </Icon>
+      </Button>
+      <Text.Header>{value}</Text.Header>
+      <Button
+        type="button"
+        style={{ aspectRatio: "1" }}
+        onClick={handleDecrement}
+        disabled={value <= min}
+      >
+        <Icon name="subtract">
+          <AiOutlineMinus />
+        </Icon>
+      </Button>
     </div>
   );
 };

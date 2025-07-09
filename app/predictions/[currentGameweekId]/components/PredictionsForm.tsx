@@ -7,8 +7,9 @@ import { Button } from "@/components";
 import Link from "next/link";
 import { GameweekInfo, UserPredictions } from "@/app/types";
 import ScorePredictor from "./ScorePredictor";
-import { upsertGameweekPredictions } from "@/lib/predictionAPI";
 import { useSession } from "next-auth/react";
+import classes from "../../Predictions.module.css";
+import { toaster } from "@/components/ui/toaster";
 
 export default function PredictionsForm({
   gameweek,
@@ -61,6 +62,7 @@ export default function PredictionsForm({
       gameweekId: gameweek.gameweekId,
       predictions,
     });
+    setLoading(true);
 
     try {
       const response = await fetch("/api/predictions", {
@@ -79,24 +81,33 @@ export default function PredictionsForm({
       }
 
       setSuccess(`Predictions submitted successfully!`);
+      toaster.create({
+        description: "Predictions submitted successfully!",
+        type: "success",
+      });
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
+      toaster.create({
+        description: "Predictions submitted successfully!",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} id="predictions-form">
+    <form
+      onSubmit={handleSubmit}
+      id="predictions-form"
+      className={classes.predictionsForm}
+    >
       {gameweek.fixtures.map((fixture) => {
         const { id, homeTeam, awayTeam, kickoff } = fixture;
 
         return (
           <Card key={id}>
-            <Text.Title>
-              {homeTeam} vs {awayTeam}
-            </Text.Title>
-            <Text>
+            <Text.Title textAlign="center">
               {new Date(kickoff).toLocaleString("en-GB", {
                 month: "long",
                 year: "numeric",
@@ -104,7 +115,7 @@ export default function PredictionsForm({
                 hour: "2-digit",
                 minute: "2-digit",
               })}
-            </Text>
+            </Text.Title>
             <ScorePredictor
               homeTeam={homeTeam}
               homeScore={predictions[id]?.homeScore || 0}
@@ -116,7 +127,13 @@ export default function PredictionsForm({
           </Card>
         );
       })}
-      <Button id="predictions-form" type="submit" style={{ marginTop: "20px" }}>
+      <Button
+        id="predictions-form"
+        type="submit"
+        style={{ marginTop: "20px" }}
+        loading={loading}
+        disabled={loading}
+      >
         Submit Predictions
       </Button>
     </form>

@@ -39,6 +39,7 @@ export type GameweekFixture = {
   homeTeam: string;
   awayTeam: string;
   kickoff: string;
+  points: number | null;
   prediction: GameweekPrediction | null;
 };
 

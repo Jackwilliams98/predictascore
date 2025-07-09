@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import ScoreEditor from "./ScoreEditor";
+import Text from "@/components/Text/Text";
+import classes from "../../Predictions.module.css";
 
 type ScorePredictorProps = {
   homeTeam: string;
@@ -21,31 +23,29 @@ const ScorePredictor: React.FC<ScorePredictorProps> = ({
   handleChange,
 }) => {
   return (
-    <div>
-      <div className="score-editors">
-        <div className="score-editor">
-          <label>
-            {homeTeam}
-            <ScoreEditor
-              team="homeScore"
-              value={homeScore}
-              fixtureId={fixtureId}
-              onChange={handleChange}
-            />
-          </label>
-        </div>
-        <span className="vs">vs</span>
-        <div className="score-editor">
-          <label>
-            {awayTeam}
-            <ScoreEditor
-              team="awayScore"
-              value={awayScore}
-              fixtureId={fixtureId}
-              onChange={handleChange}
-            />
-          </label>
-        </div>
+    <div className={classes.scoreEditors}>
+      <div className={classes.scoreEditor}>
+        <Text textAlign="center" flex={1}>
+          {homeTeam}
+        </Text>
+        <ScoreEditor
+          team="homeScore"
+          value={homeScore}
+          fixtureId={fixtureId}
+          onChange={handleChange}
+        />
+      </div>
+      <Text.Header>vs</Text.Header>
+      <div className={classes.scoreEditor}>
+        <ScoreEditor
+          team="awayScore"
+          value={awayScore}
+          fixtureId={fixtureId}
+          onChange={handleChange}
+        />
+        <Text textAlign="center" flex={1}>
+          {awayTeam}
+        </Text>
       </div>
     </div>
   );

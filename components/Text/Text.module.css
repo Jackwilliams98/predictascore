@@ -6,3 +6,8 @@
   font-size: var(--font-size-medium);
   font-weight: var(--font-weight-bold);
 }
+
+.large {
+  font-size: var(--font-size-large);
+  font-weight: var(--font-weight-bold);
+}
