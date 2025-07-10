@@ -20,13 +20,14 @@ async function submitPredictionsHandler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { userId, gameweekId, predictions } = req.body;
+  const { userId, gameweekId, predictions, deadline } = req.body;
 
   try {
     const result = await upsertGameweekPredictions(
       userId,
       gameweekId,
-      predictions
+      predictions,
+      deadline
     );
     res.status(201).json(result);
   } catch (error) {

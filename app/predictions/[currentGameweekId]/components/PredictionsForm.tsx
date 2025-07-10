@@ -17,8 +17,10 @@ export default function PredictionsForm({
   gameweek: GameweekInfo;
 }) {
   const { data: session } = useSession();
+  const { deadline, fixtures, gameweekId } = gameweek;
+
   const initialPredictions: UserPredictions = {};
-  gameweek.fixtures.forEach((fixture) => {
+  fixtures.forEach((fixture) => {
     initialPredictions[fixture.id] = {
       homeScore: fixture.prediction?.homeScore || 0,
       awayScore: fixture.prediction?.awayScore || 0,
@@ -43,8 +45,6 @@ export default function PredictionsForm({
   }
 
   const handleChange = (fixtureId: string, team: string, score: number) => {
-    console.log(`Updating ${team} score for fixture ${fixtureId} to ${score}`);
-
     setPredictions((prev) => ({
       ...prev,
       [fixtureId]: {
@@ -53,15 +53,17 @@ export default function PredictionsForm({
       },
     }));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form submitted: ", predictions);
+
     const body = JSON.stringify({
       userId: session?.user.id,
-      gameweekId: gameweek.gameweekId,
+      gameweekId,
       predictions,
+      deadline,
     });
+
     setLoading(true);
 
     try {
@@ -88,7 +90,7 @@ export default function PredictionsForm({
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
       toaster.create({
-        description: "Predictions submitted successfully!",
+        description: "Failed to submit predictions",
         type: "error",
       });
     } finally {
@@ -102,7 +104,7 @@ export default function PredictionsForm({
       id="predictions-form"
       className={classes.predictionsForm}
     >
-      {gameweek.fixtures.map((fixture) => {
+      {fixtures.map((fixture) => {
         const { id, homeTeam, awayTeam, kickoff } = fixture;
 
         return (

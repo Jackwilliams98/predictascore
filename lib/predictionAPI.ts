@@ -141,11 +141,20 @@ export const getGameweekPredictions = async (
 export const upsertGameweekPredictions = async (
   userId: string,
   gameweekId: string,
-  predictions: UserPredictions
+  predictions: UserPredictions,
+  deadline: string
 ): Promise<GameweekFixture | null> => {
   if (!userId || !gameweekId || !predictions) {
     console.error("Error: userId, gameweekId, or prediction is undefined");
     return null;
+  }
+
+  const deadlineDate = new Date(deadline);
+  const currentDate = new Date();
+
+  if (deadlineDate < currentDate) {
+    console.error("Error: Deadline has already passed");
+    throw new Error("Deadline has already passed");
   }
 
   const league = await prisma.leagueMember.findFirst({
