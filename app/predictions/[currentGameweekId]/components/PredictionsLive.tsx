@@ -5,23 +5,73 @@ import Text from "@/components/Text/Text";
 import { Card } from "@/components/Card";
 import classes from "../../Predictions.module.css";
 import { Button } from "@/components";
-import { updateFixtureResults } from "@/lib/scoresAPI";
 import { GameweekInfo } from "@/app/types";
+import { Role, User } from "@prisma/client";
 
 const SCORES = [
   { homeTeam: "Blackpool", awayTeam: "Chelsea", homeScore: 1, awayScore: 5 },
   {
     homeTeam: "Burnley",
-    awayTeam: "Manchester United",
+    awayTeam: "Man United",
     homeScore: 6,
     awayScore: 1,
+  },
+  {
+    homeTeam: "Fulham",
+    awayTeam: "Ipswich",
+    homeScore: 10,
+    awayScore: 1,
+  },
+  {
+    homeTeam: "Leicester",
+    awayTeam: "Everton",
+    homeScore: 2,
+    awayScore: 0,
+  },
+  {
+    homeTeam: "Liverpool",
+    awayTeam: "Stoke",
+    homeScore: 6,
+    awayScore: 1,
+  },
+  {
+    homeTeam: "Nottingham Forest",
+    awayTeam: "Sheffield United",
+    homeScore: 3,
+    awayScore: 3,
+  },
+  {
+    homeTeam: "Sheffield Wednesday",
+    awayTeam: "Bolton",
+    homeScore: 3,
+    awayScore: 0,
+  },
+  {
+    homeTeam: "West Brom",
+    awayTeam: "Tottenham",
+    homeScore: 4,
+    awayScore: 4,
+  },
+  {
+    homeTeam: "West Ham",
+    awayTeam: "Blackburn",
+    homeScore: 2,
+    awayScore: 8,
+  },
+  {
+    homeTeam: "Wolves",
+    awayTeam: "Aston Villa",
+    homeScore: 3,
+    awayScore: 3,
   },
 ];
 
 export default function PredictionsLive({
   gameweek,
+  user,
 }: {
   gameweek: GameweekInfo;
+  user: User | null;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,24 +113,27 @@ export default function PredictionsLive({
     const { id, homeTeam, awayTeam, kickoff, points, prediction } = fixture;
 
     const score = SCORES.find(
-      (s) => s.homeTeam === homeTeam && s.awayTeam === awayTeam
-    ) || { homeScore: 0, awayScore: 0 };
+      (s) =>
+        s.homeTeam.toLowerCase() === homeTeam.toLowerCase() &&
+        s.awayTeam.toLowerCase() === awayTeam.toLowerCase()
+    );
 
     if (!prediction) {
       return null;
     }
 
-    const { homeScore, awayScore } = prediction;
-
     return (
       <div key={id}>
-        <Button
-          onClick={() =>
-            updateFixtureScore(id, score.homeScore, score.awayScore)
-          }
-        >
-          Update Score
-        </Button>
+        {user?.role === Role.ADMIN && (
+          <Button
+            onClick={() =>
+              score !== undefined &&
+              updateFixtureScore(id, score.homeScore, score.awayScore)
+            }
+          >
+            Update Score
+          </Button>
+        )}
         <Card key={id} style={{ marginBottom: "16px", position: "relative" }}>
           <Text>
             {new Date(kickoff).toLocaleString("en-GB", {
@@ -102,20 +155,30 @@ export default function PredictionsLive({
           >
             <div style={{ flex: 1 }}>{homeTeam}</div>
             <div style={{ flex: 1 }}>
-              {homeScore || 0}:{awayScore || 0}
+              {prediction.homeScore || 0}:{prediction.awayScore || 0}
             </div>
             <div style={{ flex: 1 }}>{awayTeam}</div>
           </Text.Title>
           {points !== null && (
-            <span
-              className={classes.points}
-              style={{
-                backgroundColor:
-                  points === 0 ? "#fff9c4" : points > 0 ? "#d4edda" : "#f8d7da",
-              }}
-            >
-              <Text style={{ marginInlineStart: "2px" }}>{points}</Text>
-            </span>
+            <>
+              <Text style={{ textAlign: "center", marginTop: "8px" }}>
+                Actual Score:{" "}
+                {`${score && score.homeScore}:${score && score.awayScore}`}
+              </Text>
+              <span
+                className={classes.points}
+                style={{
+                  backgroundColor:
+                    points === 0
+                      ? "#fff9c4"
+                      : points > 0
+                      ? "#d4edda"
+                      : "#f8d7da",
+                }}
+              >
+                <Text style={{ marginInlineStart: "2px" }}>{points}</Text>
+              </span>
+            </>
           )}
         </Card>
       </div>

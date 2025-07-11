@@ -3,6 +3,7 @@ import Text from "@/components/Text/Text";
 import { getGameweekPredictions } from "@/lib/predictionAPI";
 import PredictionsForm from "./components/PredictionsForm";
 import PredictionsLive from "./components/PredictionsLive";
+import { getUserById } from "@/lib/userAPI";
 
 export default async function CurrentGameweek({
   params,
@@ -18,6 +19,7 @@ export default async function CurrentGameweek({
   if (!session || !gameweek) {
     return <Text>Loading...</Text>;
   }
+  const user = await getUserById(session?.user?.id);
 
   const now = new Date();
   const deadline = new Date(gameweek.deadline);
@@ -38,7 +40,7 @@ export default async function CurrentGameweek({
         Gameweek {gameweek.gameweekNumber}
       </Text.Header>
       {isGameweekLive ? (
-        <PredictionsLive gameweek={gameweek} />
+        <PredictionsLive gameweek={gameweek} user={user} />
       ) : (
         <PredictionsForm gameweek={gameweek} />
       )}
