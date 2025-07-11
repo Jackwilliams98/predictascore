@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { Card } from "@/components/Card";
 import Text from "@/components/Text/Text";
-import { Button } from "@/components";
-import Link from "next/link";
 import { getUserPredictionLeagues } from "@/lib/predictionAPI";
 
 export default async function Predictions() {
@@ -42,6 +40,7 @@ export default async function Predictions() {
                           <Text>Deadline</Text>
                           <Text>
                             {new Date(league.deadline).toLocaleString("en-GB", {
+                              timeZone: "UTC",
                               month: "long",
                               day: "numeric",
                               hour: "2-digit",
