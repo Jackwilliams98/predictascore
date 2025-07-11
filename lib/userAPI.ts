@@ -19,6 +19,13 @@ export const getUsers = async (): Promise<dbUser[]> => {
   return await prisma.user.findMany();
 };
 
+// Get a user by ID
+export const getUserById = async (id: string): Promise<dbUser | null> => {
+  return await prisma.user.findUnique({
+    where: { id },
+  });
+};
+
 // Upsert a user
 export const upsertUser = async ({
   email,

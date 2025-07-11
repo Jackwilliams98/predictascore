@@ -152,8 +152,8 @@ model GameweekPrediction {
   userId      String
   gameweekId  String
   seasonId    String
-  leagueId    String // Optional: Link to a specific league
-  submitted   Boolean      @default(false)
+  leagueId    String 
+  submitted   Boolean      @default(false) // Only true if the user has submitted all predictions for this gameweek
   points      Int?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -180,4 +180,5 @@ model Prediction {
   user                 User               @relation(fields: [userId], references: [id])
 
   @@index([gameweekPredictionId])
+  @@unique([gameweekPredictionId, fixtureId])
 }

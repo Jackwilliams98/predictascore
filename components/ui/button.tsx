@@ -17,8 +17,15 @@ export interface ButtonProps extends ChakraButtonProps, CustomButtonProps {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(props, ref) {
-    const { buttonType, loading, disabled, loadingText, children, ...rest } =
-      props;
+    const {
+      buttonType,
+      loading,
+      disabled,
+      loadingText,
+      children,
+      style,
+      ...rest
+    } = props;
 
     const backgroundColours = {
       delete: "#c53030",
@@ -35,6 +42,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           backgroundColor: backgroundColours[buttonType || "default"],
           color: "#fff",
           margin: "10px 0",
+          ...style,
         }}
       >
         {loading && !loadingText ? (

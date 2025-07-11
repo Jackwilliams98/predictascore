@@ -1,6 +1,6 @@
 "use client";
-
-import { Box, Icon, Tabs } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { Box, IconButton, Tabs } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,6 +25,8 @@ export const NavigationHeader: React.FC = () => {
   const basePath = `/${pathname?.split("/")[1]}`;
 
   const routes = Object.values(NAVIGATION_ROUTES);
+
+  const [open, setOpen] = useState(false);
 
   return (
     <header className={classes.header}>
@@ -57,12 +59,12 @@ export const NavigationHeader: React.FC = () => {
           height={60}
           priority
         />
-        <DrawerRoot>
+        <DrawerRoot open={open} onOpenChange={(e) => setOpen(e.open)}>
           <DrawerBackdrop />
           <DrawerTrigger asChild>
-            <Icon fontSize="2xl">
+            <IconButton>
               <AiOutlineMenu />
-            </Icon>
+            </IconButton>
           </DrawerTrigger>
           <DrawerContent backgroundColor="#fff">
             <DrawerHeader>
@@ -76,7 +78,12 @@ export const NavigationHeader: React.FC = () => {
               }}
             >
               {routes.map((tab) => (
-                <Link key={tab.path} href={tab.path} className={classes.link}>
+                <Link
+                  key={tab.path}
+                  href={tab.path}
+                  className={classes.link}
+                  onClick={() => setOpen(false)}
+                >
                   {tab.tab}
                 </Link>
               ))}
