@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@chakra-ui/react";
+import { IconButton } from "@chakra-ui/react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { AiOutlineMinus } from "react-icons/ai";
 
@@ -41,27 +41,23 @@ const ScoreEditor: React.FC<ScoreEditorProps> = ({
         maxWidth: 200,
       }}
     >
-      <Button
+      <IconButton
         type="button"
-        style={{ aspectRatio: "1" }}
+        style={{ aspectRatio: "1", backgroundColor: "#31511e", color: "#fff" }}
         onClick={handleIncrement}
         disabled={value >= max}
       >
-        <Icon name="add">
-          <AiOutlinePlus />
-        </Icon>
-      </Button>
+        <AiOutlinePlus />
+      </IconButton>
       <Text.Header>{value}</Text.Header>
-      <Button
+      <IconButton
         type="button"
-        style={{ aspectRatio: "1" }}
+        style={{ aspectRatio: "1", backgroundColor: "#31511e", color: "#fff" }}
         onClick={handleDecrement}
         disabled={value <= min}
       >
-        <Icon name="subtract">
-          <AiOutlineMinus />
-        </Icon>
-      </Button>
+        <AiOutlineMinus />
+      </IconButton>
     </div>
   );
 };
