@@ -10,6 +10,12 @@ import { GameweekInfo } from "@/app/types";
 
 const SCORES = [
   { homeTeam: "Blackpool", awayTeam: "Chelsea", homeScore: 1, awayScore: 5 },
+  {
+    homeTeam: "Burnley",
+    awayTeam: "Manchester United",
+    homeScore: 6,
+    awayScore: 1,
+  },
 ];
 
 export default function PredictionsLive({
