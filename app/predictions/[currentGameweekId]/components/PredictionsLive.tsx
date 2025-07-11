@@ -7,6 +7,7 @@ import classes from "../../Predictions.module.css";
 import { Button } from "@/components";
 import { GameweekInfo } from "@/app/types";
 import { Role, User } from "@prisma/client";
+import { toaster } from "@/components/ui/toaster";
 
 const SCORES = [
   { homeTeam: "Blackpool", awayTeam: "Chelsea", homeScore: 1, awayScore: 5 },
@@ -73,7 +74,7 @@ export default function PredictionsLive({
   gameweek: GameweekInfo;
   user: User | null;
 }) {
-  const [loading, setLoading] = useState(false);
+  const [loadingFixtureId, setLoadingFixtureId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -88,6 +89,8 @@ export default function PredictionsLive({
       awayScore,
     });
 
+    setLoadingFixtureId(fixtureId);
+
     try {
       const response = await fetch("/api/scores", {
         method: "POST",
@@ -101,11 +104,19 @@ export default function PredictionsLive({
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to update fixtures");
       }
+      toaster.create({
+        description: "Fixture updated successfully!",
+        type: "success",
+      });
       setSuccess(`Fixtures updated successfully!`);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
+      toaster.create({
+        description: "Failed to update fixture",
+        type: "error",
+      });
     } finally {
-      setLoading(false);
+      setLoadingFixtureId(null);
     }
   };
 
@@ -126,6 +137,7 @@ export default function PredictionsLive({
       <div key={id}>
         {user?.role === Role.ADMIN && (
           <Button
+            loading={loadingFixtureId === id}
             onClick={() =>
               score !== undefined &&
               updateFixtureScore(id, score.homeScore, score.awayScore)
