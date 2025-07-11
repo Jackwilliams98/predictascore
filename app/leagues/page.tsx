@@ -24,7 +24,7 @@ export default async function Leagues() {
             <li key={league.id}>
               <a href={`/leagues/${league.id}`}>
                 <Card>
-                  <Text.Header>{league.name}</Text.Header>
+                  <Text.Title>{league.name}</Text.Title>
                   <div
                     style={{ display: "flex", flexDirection: "row", gap: 20 }}
                   >

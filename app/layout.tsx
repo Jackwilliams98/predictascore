@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "@/providers";
 
 import { Provider } from "@/components/ui/provider";
+import { Toaster } from "@/components/ui/toaster";
 
 import "./globals.css";
 import { NavigationHeader, PageHeader } from "@/components";
@@ -39,6 +40,7 @@ export default async function RootLayout({
             <PageHeader />
             <div className="content">{children}</div>
             <Analytics />
+            <Toaster />
           </Provider>
         </SessionProvider>
       </body>

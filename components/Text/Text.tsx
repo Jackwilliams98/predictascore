@@ -9,10 +9,15 @@ const HeaderText = (props: TextProps) => (
 );
 
 const TitleText = (props: TextProps) => (
-  <ChakraText className={classes.title} as="h2" {...props} />
+  <ChakraText className={classes.subtitle} as="h2" {...props} />
+);
+
+const LargeText = (props: TextProps) => (
+  <ChakraText className={classes.large} as="p" {...props} />
 );
 
 Text.Header = HeaderText;
 Text.Title = TitleText;
+Text.Large = LargeText;
 
 export default Text;

@@ -20,10 +20,59 @@ export type TeamType = {
   crest: string;
 };
 
+export type League = {
+  league: {
+    id: string;
+    name: string;
+  };
+  id: string;
+  userId: string;
+  leagueId: string;
+  seasonId: string;
+  joinedAt: Date;
+  leftAt: Date | null;
+  points: number;
+};
+
+export type GameweekFixture = {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  kickoff: string;
+  points: number | null;
+  prediction: GameweekPrediction | null;
+};
+
+export type GameweekPrediction = {
+  homeScore: number;
+  awayScore: number;
+};
+
 export type UserLeagueInfo = {
   id: string;
   name: string;
   overallRank: number;
   overallPoints: number;
   gameweekRank: string | number;
+};
+
+export type UserPredictionLeagueInfo = {
+  id: string;
+  name: string;
+  currentGameweekId?: string;
+  deadline: string;
+  isSubmitted: boolean;
+};
+
+export type GameweekInfo = {
+  gameweekId: string;
+  gameweekNumber: number;
+  startDate: string;
+  endDate: string;
+  deadline: string;
+  fixtures: GameweekFixture[];
+};
+
+export type UserPredictions = {
+  [fixtureId: string]: GameweekPrediction;
 };

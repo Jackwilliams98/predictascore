@@ -69,6 +69,9 @@ export default async function League({
           );
         })}
       </Card>
+      <Text style={{ marginTop: "10px", fontSize: "18px" }}>
+        League Code: {league.joinCode}
+      </Text>
       <LeaveLeagueButton
         leagueName={league.name}
         leagueId={params.leagueId}
