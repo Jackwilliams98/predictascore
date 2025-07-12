@@ -31,7 +31,7 @@ export default async function CurrentGameweek({
   const isGameweekLive = deadline < now;
 
   return (
-    <div>
+    <div style={{ marginBottom: 40 }}>
       <Text.Header
         style={{
           display: "flex",
