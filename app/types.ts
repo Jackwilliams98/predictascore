@@ -76,3 +76,30 @@ export type GameweekInfo = {
 export type UserPredictions = {
   [fixtureId: string]: GameweekPrediction;
 };
+
+export type ApiFixture = {
+  id: number;
+  utcDate: string;
+  status: string;
+  lastUpdated: string;
+  homeTeam: {
+    id: number;
+    name: string;
+    shortName: string;
+    tla: string;
+    crest: string;
+  };
+  awayTeam: {
+    id: number;
+    name: string;
+    shortName: string;
+    tla: string;
+    crest: string;
+  };
+  score: {
+    winner: string | null;
+    duration: string;
+    fullTime: { home: number | null; away: number | null };
+    halfTime: { home: number | null; away: number | null };
+  };
+};

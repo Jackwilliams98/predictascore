@@ -145,6 +145,7 @@ model Fixture {
   predictions Prediction[]
 
   @@index([kickoff])
+  @@unique([kickoff, homeTeam, awayTeam])
 }
 
 model GameweekPrediction {
