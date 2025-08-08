@@ -1,32 +1,45 @@
 import prisma from "@/lib/prisma";
 
+const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
+if (!token) {
+  throw new Error("API token is not defined");
+}
+
+const headers = {
+  "X-Auth-Token": token,
+  "Content-Type": "application/json",
+};
+
 /**
  * Updates fixture results, scores predictions, updates gameweek and league points.
  * @param fixtureResults Array of objects: { fixtureId, homeScore, awayScore }
  */
 export async function updateFixtureResults({
-  fixtureId,
+  externalId,
   homeScore,
   awayScore,
 }: {
-  fixtureId: string;
+  externalId: number;
   homeScore: number;
   awayScore: number;
 }) {
   try {
     // 1. Update the Fixture
-    await prisma.fixture.update({
-      where: { id: fixtureId },
+    const fixture = await prisma.fixture.update({
+      where: { externalId },
       data: {
         homeScore: homeScore,
         awayScore: awayScore,
         status: "FINISHED",
       },
+      select: {
+        id: true,
+      },
     });
 
     // 2. Get all predictions for this fixture
     const predictions = await prisma.prediction.findMany({
-      where: { fixtureId: fixtureId },
+      where: { fixtureId: fixture.id },
       include: { gameweekPrediction: true },
     });
 
@@ -169,5 +182,46 @@ export async function updateFixtureResults({
       message: "Failed to apply fixture results.",
       error,
     };
+  }
+}
+
+export async function getGameweekFixtureData() {
+  try {
+    const fixtures = await prisma.fixture.findMany({
+      where: { status: "SCHEDULED" },
+      select: {
+        externalId: true,
+      },
+    });
+
+    const fixtureData = await Promise.all(
+      fixtures.map(async (fixture) => {
+        console.log(
+          `Fetching fixture data for externalId: ${fixture.externalId}`
+        );
+
+        const response = await fetch(
+          `https://api.football-data.org/v4/matches/${fixture.externalId}`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
+        const data = await response.json();
+
+        const { id, score } = data;
+
+        return {
+          externalId: id,
+          homeScore: score.fullTime.home,
+          awayScore: score.fullTime.away,
+        };
+      })
+    );
+
+    return fixtureData;
+  } catch (error) {
+    console.error("Error fetching gameweek fixtures:", error);
+    throw new Error("Failed to fetch gameweek fixtures.");
   }
 }
