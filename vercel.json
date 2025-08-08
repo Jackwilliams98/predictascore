@@ -7,11 +7,11 @@
     },
     {
       "path": "/api/every-hour",
-      "schedule": "0 23 * * SAT"
+      "schedule": "0 23 * * 6"
     },
     {
       "path": "/api/every-day",
-      "schedule": "0 23 * * SUN"
+      "schedule": "0 23 * * 0"
     }
   ]
 }
