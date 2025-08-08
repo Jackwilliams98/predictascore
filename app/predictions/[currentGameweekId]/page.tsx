@@ -44,7 +44,7 @@ export default async function CurrentGameweek({
         Gameweek {gameweek.gameweekNumber}
       </Text.Header>
       {isGameweekLive ? (
-        <PredictionsLive gameweek={gameweek} user={user} />
+        <PredictionsLive gameweek={gameweek} />
       ) : (
         <PredictionsForm gameweek={gameweek} />
       )}

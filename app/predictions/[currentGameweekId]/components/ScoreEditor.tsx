@@ -3,7 +3,6 @@ import { IconButton } from "@chakra-ui/react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { AiOutlineMinus } from "react-icons/ai";
 
-import { Button } from "@/components";
 import Text from "@/components/Text/Text";
 
 interface ScoreEditorProps {
