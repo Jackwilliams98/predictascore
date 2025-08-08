@@ -143,6 +143,7 @@ export const createNewFixtures = async () => {
     }
 
     const fixtures = gameweekFixtures.map((match: ApiFixture) => ({
+      externalId: match.id,
       homeTeam: match.homeTeam.name,
       awayTeam: match.awayTeam.name,
       kickoff: match.utcDate,
@@ -168,6 +169,7 @@ export const createNewFixtures = async () => {
           },
           update: {},
           create: {
+            externalId: fixture.externalId,
             homeTeam: fixture.homeTeam,
             awayTeam: fixture.awayTeam,
             kickoff: new Date(fixture.kickoff),

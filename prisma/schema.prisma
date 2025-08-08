@@ -139,7 +139,7 @@ model Fixture {
   homeScore   Int?
   awayScore   Int?
   status      FixtureStatus     @default(SCHEDULED)
-  externalId  String?           @unique
+  externalId  Int?           @unique
   updatedAt   DateTime          @updatedAt
   gameweeks   GameweekFixture[]
   predictions Prediction[]

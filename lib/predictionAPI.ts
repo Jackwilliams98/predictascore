@@ -80,6 +80,8 @@ export const getGameweekPredictions = async (
               homeTeam: true,
               awayTeam: true,
               kickoff: true,
+              homeScore: true,
+              awayScore: true,
             },
           },
         },
@@ -116,7 +118,9 @@ export const getGameweekPredictions = async (
     return {
       id: fixture.fixture.id,
       homeTeam: fixture.fixture.homeTeam,
+      homeScore: fixture.fixture.homeScore,
       awayTeam: fixture.fixture.awayTeam,
+      awayScore: fixture.fixture.awayScore,
       kickoff: fixture.fixture.kickoff.toISOString(),
       points: predictionDetails ? predictionDetails.points : null,
       prediction: predictionDetails

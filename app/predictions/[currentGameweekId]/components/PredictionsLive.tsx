@@ -9,70 +9,10 @@ import { GameweekInfo } from "@/app/types";
 import { Role, User } from "@prisma/client";
 import { toaster } from "@/components/ui/toaster";
 
-const SCORES = [
-  { homeTeam: "Blackpool", awayTeam: "Chelsea", homeScore: 1, awayScore: 5 },
-  {
-    homeTeam: "Burnley",
-    awayTeam: "Man United",
-    homeScore: 6,
-    awayScore: 1,
-  },
-  {
-    homeTeam: "Fulham",
-    awayTeam: "Ipswich",
-    homeScore: 10,
-    awayScore: 1,
-  },
-  {
-    homeTeam: "Leicester",
-    awayTeam: "Everton",
-    homeScore: 2,
-    awayScore: 0,
-  },
-  {
-    homeTeam: "Liverpool",
-    awayTeam: "Stoke",
-    homeScore: 6,
-    awayScore: 1,
-  },
-  {
-    homeTeam: "Nottingham Forest",
-    awayTeam: "Sheffield United",
-    homeScore: 3,
-    awayScore: 3,
-  },
-  {
-    homeTeam: "Sheffield Wednesday",
-    awayTeam: "Bolton",
-    homeScore: 3,
-    awayScore: 0,
-  },
-  {
-    homeTeam: "West Brom",
-    awayTeam: "Tottenham",
-    homeScore: 4,
-    awayScore: 4,
-  },
-  {
-    homeTeam: "West Ham",
-    awayTeam: "Blackburn",
-    homeScore: 2,
-    awayScore: 8,
-  },
-  {
-    homeTeam: "Wolves",
-    awayTeam: "Aston Villa",
-    homeScore: 3,
-    awayScore: 3,
-  },
-];
-
 export default function PredictionsLive({
   gameweek,
-  user,
 }: {
   gameweek: GameweekInfo;
-  user: User | null;
 }) {
   const [loadingFixtureId, setLoadingFixtureId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -121,13 +61,16 @@ export default function PredictionsLive({
   };
 
   return gameweek.fixtures.map((fixture) => {
-    const { id, homeTeam, awayTeam, kickoff, points, prediction } = fixture;
-
-    const score = SCORES.find(
-      (s) =>
-        s.homeTeam.toLowerCase() === homeTeam.toLowerCase() &&
-        s.awayTeam.toLowerCase() === awayTeam.toLowerCase()
-    );
+    const {
+      id,
+      homeTeam,
+      homeScore,
+      awayTeam,
+      awayScore,
+      kickoff,
+      points,
+      prediction,
+    } = fixture;
 
     if (!prediction) {
       return null;
@@ -135,17 +78,6 @@ export default function PredictionsLive({
 
     return (
       <div key={id}>
-        {user?.role === Role.ADMIN && (
-          <Button
-            loading={loadingFixtureId === id}
-            onClick={() =>
-              score !== undefined &&
-              updateFixtureScore(id, score.homeScore, score.awayScore)
-            }
-          >
-            Update Score
-          </Button>
-        )}
         <Card key={id} style={{ marginBottom: "16px", position: "relative" }}>
           <Text>
             {new Date(kickoff).toLocaleString("en-GB", {
@@ -175,7 +107,7 @@ export default function PredictionsLive({
             <>
               <Text style={{ textAlign: "center", marginTop: "8px" }}>
                 Actual Score:{" "}
-                {`${score && score.homeScore}:${score && score.awayScore}`}
+                {`${homeScore && homeScore}:${awayScore && awayScore}`}
               </Text>
               <span
                 className={classes.points}

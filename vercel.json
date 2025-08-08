@@ -2,19 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/create-gameweek",
-      "schedule": "* * * * *",
-      "headers": {
-        "x-cron-secret": "rFDaSV&tZt%S#%4A"
-      }
+      "path": "/api/gameweek",
+      "schedule": "0 2 * * 1"
     },
     {
       "path": "/api/every-hour",
-      "schedule": "0 * * * *"
+      "schedule": "0 23 * * SAT"
     },
     {
       "path": "/api/every-day",
-      "schedule": "0 0 * * *"
+      "schedule": "0 23 * * SUN"
     }
   ]
 }
