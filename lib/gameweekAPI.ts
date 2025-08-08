@@ -1,6 +1,7 @@
 import { ApiFixture } from "@/app/types";
 import prisma from "./prisma";
 import { getUpcomingWeekendDates } from "@/utils/upcomingWeekend";
+import { Season } from "@prisma/client";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -14,7 +15,84 @@ const headers = {
 
 const FIXTURES_PER_GAMEWEEK = 10;
 
-export const createNewFixtures = async (gameweek: number) => {
+export const updateCurrentGameweek = async () => {
+  const currentGameweek = await prisma.gameweek.findFirst({
+    where: {
+      status: "ACTIVE",
+    },
+  });
+
+  if (currentGameweek) {
+    await prisma.gameweek.update({
+      where: {
+        id: currentGameweek.id,
+      },
+      data: {
+        status: "COMPLETED",
+        isComplete: true,
+      },
+    });
+    console.log(`Updated current gameweek ${currentGameweek.id} to completed.`);
+    return {
+      id: currentGameweek.id,
+      number: currentGameweek.number,
+      seasonId: currentGameweek.seasonId,
+    };
+  }
+  console.log("No active gameweek found to update.");
+  return null;
+};
+
+export const createNewGameweek = async (
+  currentGameweek: {
+    id: string;
+    number: number;
+    seasonId: string;
+  } | null
+) => {
+  const newGameweekNumber = currentGameweek ? currentGameweek.number + 1 : 1;
+  const seasonId = currentGameweek
+    ? currentGameweek.seasonId
+    : await prisma.season
+        .findFirst({
+          where: { isActive: true },
+        })
+        .then((season: Season | null) => season?.id);
+  const leagues = await prisma.league.findMany({});
+  const { saturday, sunday } = getUpcomingWeekendDates();
+
+  if (!seasonId) {
+    throw new Error("No active season found");
+  }
+
+  if (!saturday || !sunday) {
+    throw new Error("Could not determine the upcoming weekend dates");
+  }
+
+  const deadline = new Date(saturday + "T11:00:00.000Z").toISOString();
+
+  const newGameweek = await prisma.gameweek.create({
+    data: {
+      number: newGameweekNumber,
+      status: "UPCOMING",
+      deadline: deadline,
+      isComplete: false,
+      startDate: new Date(saturday + "T00:00:00.000Z"),
+      endDate: new Date(sunday + "T23:59:59.999Z"),
+      season: { connect: { id: seasonId } },
+      League: {
+        connect: leagues.map((league) => ({ id: league.id })),
+      },
+    },
+  });
+
+  console.log(
+    `Created new gameweek ${newGameweek.id} with number ${newGameweek.number}.`
+  );
+  return newGameweek;
+};
+
+export const createNewFixtures = async () => {
   const { saturday, sunday } = getUpcomingWeekendDates();
   if (!saturday || !sunday) {
     throw new Error("Could not determine the upcoming weekend dates");
@@ -58,8 +136,6 @@ export const createNewFixtures = async (gameweek: number) => {
       const { matches: championshipMatches }: { matches: ApiFixture[] } =
         await championshipResponse.json();
 
-      console.log({ championshipMatches });
-
       gameweekFixtures = [
         ...gameweekFixtures,
         ...championshipMatches.slice(0, remainingFixtures),
@@ -74,51 +150,75 @@ export const createNewFixtures = async (gameweek: number) => {
       awayScore: match.score.fullTime.away,
     }));
 
-    fixtures.forEach(async (fixture) => {
-      if (!fixture.homeTeam || !fixture.awayTeam || !fixture.kickoff) {
-        throw new Error(
-          "Fixture data is incomplete. Ensure all required fields are present."
-        );
-      }
+    const fixtureUpsert = await Promise.all(
+      fixtures.map(async (fixture) => {
+        if (!fixture.homeTeam || !fixture.awayTeam || !fixture.kickoff) {
+          throw new Error(
+            "Fixture data is incomplete. Ensure all required fields are present."
+          );
+        }
 
-      await prisma.fixture.upsert({
-        where: {
-          kickoff_homeTeam_awayTeam: {
-            kickoff: new Date(fixture.kickoff),
+        return await prisma.fixture.upsert({
+          where: {
+            kickoff_homeTeam_awayTeam: {
+              kickoff: new Date(fixture.kickoff),
+              homeTeam: fixture.homeTeam,
+              awayTeam: fixture.awayTeam,
+            },
+          },
+          update: {},
+          create: {
             homeTeam: fixture.homeTeam,
             awayTeam: fixture.awayTeam,
+            kickoff: new Date(fixture.kickoff),
+            homeScore: fixture.homeScore ?? null,
+            awayScore: fixture.awayScore ?? null,
           },
-        },
-        update: {},
-        create: {
-          homeTeam: fixture.homeTeam,
-          awayTeam: fixture.awayTeam,
-          kickoff: new Date(fixture.kickoff),
-          homeScore: fixture.homeScore ?? null,
-          awayScore: fixture.awayScore ?? null,
-        },
-      });
+        });
+      })
+    ).finally(() => {
+      console.log("Fixtures upserted successfully.");
     });
 
-    console.log(`Created ${fixtures.length} fixtures for gameweek ${gameweek}`);
+    console.log(`Created ${fixtures.length} fixtures for gameweek`);
+    return fixtureUpsert;
   } catch (error) {
     console.error("Error creating gameweek:", error);
-    return {
-      error,
-    };
+    throw new Error(
+      `Failed to create fixtures: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
 };
 
-/* 
-- Check if there is an existing active gameweek
-  - update status to completed
-  - update isComplete to true
-- Get the fixture information and create new fixtures
-- Create a new gameweek with status "active"
-  - apply current season
-  - increment gameweek number
-  - set the deadline to saturday at 11:00 UTC
-  - link gameweek to leagues
-- Create a gameweekFixture row to link the gameweek to the fixtures
-- Update the league's current gameweek to the new gameweek
-*/
+export const createGameweekFixtures = async (
+  fixtures: any[],
+  gameweek: { id: string }
+) => {
+  if (!gameweek || !gameweek.id) {
+    throw new Error("Gameweek ID is required to create gameweek fixtures");
+  }
+
+  const gameweekFixtures = await Promise.all(
+    fixtures.map(async (fixture) => {
+      return await prisma.gameweekFixture.create({
+        data: {
+          fixture: {
+            connect: {
+              id: fixture.id,
+            },
+          },
+          gameweek: {
+            connect: {
+              id: gameweek.id,
+            },
+          },
+        },
+      });
+    })
+  );
+
+  console.log(`Created ${gameweekFixtures.length} gameweek fixtures.`);
+  return gameweekFixtures;
+};
