@@ -4,7 +4,7 @@ import Text from "@/components/Text/Text";
 export default async function Home() {
   return (
     <div>
-      <div style={{ margin: "20px 0" }}>
+      <div style={{ margin: "44px 0" }}>
         <Text.Title>Welcome To PredictaScore</Text.Title>
         <Text>
           Welcome to our football predictions website - PredictaScore! Where
