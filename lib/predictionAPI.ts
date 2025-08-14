@@ -196,6 +196,7 @@ export const upsertGameweekPredictions = async (
       leagueId,
       gameweekId,
       seasonId,
+      submitted: true,
     },
   });
 
