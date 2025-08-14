@@ -74,7 +74,7 @@ export const createNewGameweek = async (
   const newGameweek = await prisma.gameweek.create({
     data: {
       number: newGameweekNumber,
-      status: "UPCOMING",
+      status: "ACTIVE",
       deadline: deadline,
       isComplete: false,
       startDate: new Date(saturday + "T00:00:00.000Z"),
