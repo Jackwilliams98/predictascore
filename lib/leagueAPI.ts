@@ -170,6 +170,26 @@ export const createLeague = async (leagueName: string, userId: string) => {
     },
   });
 
+  const currentGameweek = await prisma.gameweek.findFirst({
+    where: {
+      seasonId,
+      status: "ACTIVE",
+    },
+  });
+
+  if (currentGameweek) {
+    await prisma.gameweek.update({
+      where: {
+        id: currentGameweek.id,
+      },
+      data: {
+        League: {
+          connect: { id: league.id },
+        },
+      },
+    });
+  }
+
   return league;
 };
 
