@@ -22,7 +22,7 @@ enum FixtureStatus {
 }
 
 enum GameweekStatus {
-  UPCOMING
+  UPCOMING // Currently not in use due to limited cron jobs per project. "ACTIVE" used on creation of new gameweek.
   ACTIVE
   COMPLETED
 }
@@ -43,7 +43,6 @@ model User {
   @@map(name: "users")
 }
 
-// TODO: Cron job to create a new season every year, archive the previous one, and set the new one as active
 model Season {
   id                 String               @id @default(cuid())
   name               String // e.g., "2023/2024"
@@ -100,7 +99,6 @@ model LeagueMember {
   @@unique([userId, leagueId, seasonId]) // Ensure unique membership per league and season
 }
 
-// TODO: Cron job to create a new gameweek every week, archive the previous one, and set the new one as active
 model Gameweek {
   id            String               @id @default(cuid())
   number        Int
