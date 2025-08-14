@@ -181,8 +181,6 @@ export const upsertGameweekPredictions = async (
     return null;
   }
 
-  const { seasonId, leagueId } = league;
-
   const gwPrediction = await prisma.gameweekPrediction.upsert({
     where: {
       userId_gameweekId: {
@@ -193,9 +191,9 @@ export const upsertGameweekPredictions = async (
     update: {},
     create: {
       userId,
-      leagueId,
+      // leagueId: league.leagueId, update when unique fixtures per league is implemented
       gameweekId,
-      seasonId,
+      seasonId: league.seasonId,
       submitted: true,
     },
   });

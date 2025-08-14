@@ -151,7 +151,7 @@ model GameweekPrediction {
   userId      String
   gameweekId  String
   seasonId    String
-  leagueId    String 
+  // leagueId    String Removed until predictions per league is implemented
   submitted   Boolean      @default(false) // Only true if the user has submitted all predictions for this gameweek
   points      Int?
   createdAt   DateTime     @default(now())

@@ -5,19 +5,22 @@ import { Card } from "@/components/Card";
 import Text from "@/components/Text/Text";
 import { Button } from "@/components";
 import Link from "next/link";
-import { GameweekInfo, UserPredictions } from "@/app/types";
+import { GameweekFixture, UserPredictions } from "@/app/types";
 import ScorePredictor from "./ScorePredictor";
 import { useSession } from "next-auth/react";
 import classes from "../../Predictions.module.css";
 import { toaster } from "@/components/ui/toaster";
 
 export default function PredictionsForm({
-  gameweek,
+  deadline,
+  fixtures,
+  gameweekId,
 }: {
-  gameweek: GameweekInfo;
+  deadline: string;
+  fixtures: GameweekFixture[];
+  gameweekId: string;
 }) {
   const { data: session } = useSession();
-  const { deadline, fixtures, gameweekId } = gameweek;
 
   const initialPredictions: UserPredictions = {};
   fixtures.forEach((fixture) => {

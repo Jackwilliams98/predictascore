@@ -16,6 +16,12 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   try {
     const currentGameweek = await updateCurrentGameweek();
+    if (currentGameweek && currentGameweek.incomplete) {
+      return Response.json({
+        success: false,
+        message: `Current gameweek ${currentGameweek.id} is incomplete.`,
+      });
+    }
     const newGameweek = await createNewGameweek(currentGameweek);
     const fixtures = await createNewFixtures();
     await createGameweekFixtures(fixtures, newGameweek);
