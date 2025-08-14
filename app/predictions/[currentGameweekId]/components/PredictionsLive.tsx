@@ -1,66 +1,14 @@
-"use client";
-
-import { useState } from "react";
 import Text from "@/components/Text/Text";
 import { Card } from "@/components/Card";
 import classes from "../../Predictions.module.css";
-import { Button } from "@/components";
-import { GameweekInfo } from "@/app/types";
-import { Role, User } from "@prisma/client";
-import { toaster } from "@/components/ui/toaster";
+import { GameweekFixture } from "@/app/types";
 
 export default function PredictionsLive({
-  gameweek,
+  fixtures,
 }: {
-  gameweek: GameweekInfo;
+  fixtures: GameweekFixture[];
 }) {
-  const [loadingFixtureId, setLoadingFixtureId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  const updateFixtureScore = async (
-    fixtureId: string,
-    homeScore: number,
-    awayScore: number
-  ) => {
-    const body = JSON.stringify({
-      fixtureId,
-      homeScore,
-      awayScore,
-    });
-
-    setLoadingFixtureId(fixtureId);
-
-    try {
-      const response = await fetch("/api/scores", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update fixtures");
-      }
-      toaster.create({
-        description: "Fixture updated successfully!",
-        type: "success",
-      });
-      setSuccess(`Fixtures updated successfully!`);
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
-      toaster.create({
-        description: "Failed to update fixture",
-        type: "error",
-      });
-    } finally {
-      setLoadingFixtureId(null);
-    }
-  };
-
-  return gameweek.fixtures.map((fixture) => {
+  return fixtures.map((fixture) => {
     const {
       id,
       homeTeam,

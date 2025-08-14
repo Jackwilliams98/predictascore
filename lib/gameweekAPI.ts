@@ -23,6 +23,32 @@ export const updateCurrentGameweek = async () => {
   });
 
   if (currentGameweek) {
+    // Check all fixtures in the current gameweek are completed
+    const fixtures = await prisma.gameweekFixture.findMany({
+      where: {
+        gameweekId: currentGameweek.id,
+        fixture: {
+          homeScore: { not: null },
+          awayScore: { not: null },
+        },
+      },
+      include: {
+        fixture: true,
+      },
+    });
+
+    if (fixtures.length < FIXTURES_PER_GAMEWEEK) {
+      console.log(
+        `Current gameweek ${currentGameweek.id} has only ${fixtures.length} fixtures. Not updating to completed.`
+      );
+      return {
+        incomplete: true,
+        id: currentGameweek.id,
+        number: currentGameweek.number,
+        seasonId: currentGameweek.seasonId,
+      };
+    }
+
     await prisma.gameweek.update({
       where: {
         id: currentGameweek.id,
@@ -34,6 +60,7 @@ export const updateCurrentGameweek = async () => {
     });
     console.log(`Updated current gameweek ${currentGameweek.id} to completed.`);
     return {
+      incomplete: false,
       id: currentGameweek.id,
       number: currentGameweek.number,
       seasonId: currentGameweek.seasonId,
@@ -56,8 +83,9 @@ export const createNewGameweek = async (
     : await prisma.season
         .findFirst({
           where: { isActive: true },
+          select: { id: true },
         })
-        .then((season: Season | null) => season?.id);
+        .then((season) => season?.id);
   const leagues = await prisma.league.findMany({});
   const { saturday, sunday } = getUpcomingWeekendDates();
 

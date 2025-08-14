@@ -29,6 +29,9 @@ export default async function CurrentGameweek({
   });
 
   const isGameweekLive = deadline < now;
+  const sortedFixtures = gameweek.fixtures.sort((a, b) => {
+    return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+  });
 
   return (
     <div style={{ marginBottom: 40 }}>
@@ -44,9 +47,13 @@ export default async function CurrentGameweek({
         Gameweek {gameweek.gameweekNumber}
       </Text.Header>
       {isGameweekLive ? (
-        <PredictionsLive gameweek={gameweek} />
+        <PredictionsLive fixtures={sortedFixtures} />
       ) : (
-        <PredictionsForm gameweek={gameweek} />
+        <PredictionsForm
+          deadline={gameweek.deadline}
+          fixtures={sortedFixtures}
+          gameweekId={gameweek.gameweekId}
+        />
       )}
     </div>
   );

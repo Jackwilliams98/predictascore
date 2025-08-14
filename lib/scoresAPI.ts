@@ -143,7 +143,7 @@ export async function updateFixtureResults({
 
       const leagueMembers = await prisma.leagueMember.findMany({
         where: {
-          leagueId: gwp.leagueId,
+          // leagueId: gwp.leagueId, update when unique fixtures per league is implemented
           seasonId: gwp.seasonId,
         },
       });
@@ -153,7 +153,7 @@ export async function updateFixtureResults({
         const totalPoints = await prisma.gameweekPrediction.aggregate({
           where: {
             userId: member.userId,
-            leagueId: member.leagueId,
+            // leagueId: member.leagueId, update when unique fixtures per league is implemented
             seasonId: member.seasonId,
           },
           _sum: { points: true },
@@ -210,6 +210,8 @@ export async function getGameweekFixtureData() {
         const data = await response.json();
 
         const { id, score } = data;
+
+        console.log(data);
 
         return {
           externalId: id,
