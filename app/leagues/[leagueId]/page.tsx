@@ -1,9 +1,12 @@
-import { Avatar, Loading } from "@/components";
-import { Card } from "@/components/Card";
+import { Loading } from "@/components";
 import Text from "@/components/Text/Text";
 import { auth } from "@/lib/auth";
-import { getLeagueInfo, getLeagueMembers, leaveLeague } from "@/lib/leagueAPI";
+import { getLeagueInfo } from "@/lib/leagueAPI";
 import LeaveLeagueButton from "./components/LeaveLeagueButton";
+import { Tabs } from "@chakra-ui/react";
+import OverallTable from "./components/OverallTable";
+import GameweekTable from "./components/GameweekTable";
+import { getTotalGameweeks } from "@/lib/gameweekAPI";
 
 export default async function League({
   params,
@@ -12,9 +15,9 @@ export default async function League({
 }) {
   const session = await auth();
   const league = await getLeagueInfo(params.leagueId);
-  const leagueMembers = await getLeagueMembers(params.leagueId);
+  const totalGameweeks = await getTotalGameweeks();
 
-  if (!session || !league || !leagueMembers) {
+  if (!session || !league) {
     return <Loading />;
   }
 
@@ -29,46 +32,29 @@ export default async function League({
           color: "#fff",
         }}
       >
-        {league?.name}
+        {league.name}
       </Text.Header>
-      <Card>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <div style={{ width: 50, fontSize: 20 }}>Rank</div>
-          <div style={{ width: 250, fontSize: 20, paddingLeft: 10 }}>User</div>
-          <div style={{ fontSize: 20 }}>Points</div>
-        </div>
-        {leagueMembers.map((member, index) => {
-          return (
-            <div
-              key={member.id}
-              style={{
-                display: "flex",
-                gap: "10px",
-                padding: "10px",
-                borderBottom: "1px solid #ccc",
-              }}
-            >
-              <div style={{ width: 50 }}>{index + 1}</div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: "10px",
-                  width: 250,
-                }}
-              >
-                <Avatar src={member.user.avatar || ""} />
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  {member.user.name}
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center" }}>
-                {member.points}
-              </div>
-            </div>
-          );
-        })}
-      </Card>
+      <Tabs.Root defaultValue="gameweek">
+        <Tabs.List justifyContent="center">
+          <Tabs.Trigger value="gameweek" fontSize="xl">
+            Gameweek
+          </Tabs.Trigger>
+          <Tabs.Trigger value="overall" fontSize="xl">
+            Overall
+          </Tabs.Trigger>
+          <Tabs.Indicator />
+        </Tabs.List>
+        <Tabs.Content value="overall">
+          <OverallTable leagueId={params.leagueId} session={session} />
+        </Tabs.Content>
+        <Tabs.Content value="gameweek">
+          <GameweekTable
+            leagueId={params.leagueId}
+            session={session}
+            totalGameweeks={totalGameweeks}
+          />
+        </Tabs.Content>
+      </Tabs.Root>
       <Text style={{ marginTop: "10px", fontSize: "18px" }}>
         League Code: {league.joinCode}
       </Text>
