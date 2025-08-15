@@ -60,16 +60,16 @@ model Season {
 }
 
 model League {
-  id                String         @id @default(cuid())
+  id                String           @id @default(cuid())
   name              String
-  createdAt         DateTime       @default(now())
+  createdAt         DateTime         @default(now())
   creatorId         String
-  joinCode          String         @unique
-  creator           User?          @relation(fields: [creatorId], references: [id])
+  joinCode          String           @unique
+  creator           User?            @relation(fields: [creatorId], references: [id])
   members           LeagueMember[]
   seasons           LeagueSeason[] // Link to seasons through a join table
   currentGameweekId String? // Optional: Points to the current active gameweek for this league
-  currentGameweek   Gameweek?      @relation(fields: [currentGameweekId], references: [id])
+  gameweeks         GameweekLeague[]
 }
 
 model LeagueSeason {
@@ -85,36 +85,46 @@ model LeagueSeason {
 }
 
 model LeagueMember {
-  id       String    @id @default(cuid())
-  userId   String
-  leagueId String
-  seasonId String
-  joinedAt DateTime  @default(now())
-  leftAt   DateTime?
-  league   League    @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  season   Season    @relation(fields: [seasonId], references: [id])
-  user     User      @relation(fields: [userId], references: [id])
-  points   Int       @default(0)
-  correctPredictions Int @default(0)
-  goalDifference Int @default(0)
+  id                 String    @id @default(cuid())
+  userId             String
+  leagueId           String
+  seasonId           String
+  joinedAt           DateTime  @default(now())
+  leftAt             DateTime?
+  league             League    @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  season             Season    @relation(fields: [seasonId], references: [id])
+  user               User      @relation(fields: [userId], references: [id])
+  points             Int       @default(0)
+  correctPredictions Int       @default(0)
+  goalDifference     Int       @default(0)
 
   @@unique([userId, leagueId, seasonId]) // Ensure unique membership per league and season
 }
 
+model GameweekLeague {
+  id         String   @id @default(cuid())
+  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  leagueId   String
+  gameweek   Gameweek @relation(fields: [gameweekId], references: [id], onDelete: Cascade)
+  gameweekId String
+
+  @@unique([leagueId, gameweekId])
+}
+
 model Gameweek {
-  id            String               @id @default(cuid())
-  number        Int
-  seasonId      String
-  startDate     DateTime
-  endDate       DateTime
-  deadline      DateTime
-  status        GameweekStatus       @default(UPCOMING) // Status of the gameweek
-  isComplete    Boolean              @default(false)
-  season        Season               @relation("SeasonGameweeks", fields: [seasonId], references: [id])
-  currentSeason Season?              @relation("CurrentGameweek")
-  fixtures      GameweekFixture[]
-  predictions   GameweekPrediction[]
-  League        League[]
+  id             String               @id @default(cuid())
+  number         Int
+  seasonId       String
+  startDate      DateTime
+  endDate        DateTime
+  deadline       DateTime
+  status         GameweekStatus       @default(UPCOMING) // Status of the gameweek
+  isComplete     Boolean              @default(false)
+  season         Season               @relation("SeasonGameweeks", fields: [seasonId], references: [id])
+  currentSeason  Season?              @relation("CurrentGameweek")
+  fixtures       GameweekFixture[]
+  predictions    GameweekPrediction[]
+  GameweekLeague GameweekLeague[]
 
   @@unique([seasonId, number]) // Ensure unique gameweek numbers within a season
 }
@@ -139,31 +149,31 @@ model Fixture {
   homeScore   Int?
   awayScore   Int?
   status      FixtureStatus     @default(SCHEDULED)
-  externalId  Int?           @unique
+  externalId  Int?              @unique
   updatedAt   DateTime          @updatedAt
   gameweeks   GameweekFixture[]
   predictions Prediction[]
 
-  @@index([kickoff])
   @@unique([kickoff, homeTeam, awayTeam])
+  @@index([kickoff])
 }
 
 model GameweekPrediction {
-  id          String       @id @default(cuid())
-  userId      String
-  gameweekId  String
-  seasonId    String
+  id                 String       @id @default(cuid())
+  userId             String
+  gameweekId         String
+  seasonId           String
   // leagueId    String Removed until predictions per league is implemented
-  submitted   Boolean      @default(false) // Only true if the user has submitted all predictions for this gameweek
-  points      Int @default(0) // Total points scored in this gameweek
-  correctPredictions Int @default(0) // Number of correct predictions made by the user
-  goalDifference Int @default(0) // Difference in goals scored vs actual
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  gameweek    Gameweek     @relation(fields: [gameweekId], references: [id])
-  season      Season       @relation(fields: [seasonId], references: [id])
-  user        User         @relation(fields: [userId], references: [id])
-  predictions Prediction[]
+  submitted          Boolean      @default(false) // Only true if the user has submitted all predictions for this gameweek
+  points             Int          @default(0) // Total points scored in this gameweek
+  correctPredictions Int          @default(0) // Number of correct predictions made by the user
+  goalDifference     Int          @default(0) // Difference in goals scored vs actual
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  gameweek           Gameweek     @relation(fields: [gameweekId], references: [id])
+  season             Season       @relation(fields: [seasonId], references: [id])
+  user               User         @relation(fields: [userId], references: [id])
+  predictions        Prediction[]
 
   @@unique([userId, gameweekId])
 }
@@ -177,13 +187,13 @@ model Prediction {
   awayScore            Int
   points               Int?
   correctScore         Boolean            @default(false) // Indicates if the prediction was correct
-  goalDifference       Int?               // Difference in goals scored vs actual
+  goalDifference       Int? // Difference in goals scored vs actual
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   fixture              Fixture            @relation(fields: [fixtureId], references: [id])
   gameweekPrediction   GameweekPrediction @relation(fields: [gameweekPredictionId], references: [id])
   user                 User               @relation(fields: [userId], references: [id])
 
-  @@index([gameweekPredictionId])
   @@unique([gameweekPredictionId, fixtureId])
+  @@index([gameweekPredictionId])
 }

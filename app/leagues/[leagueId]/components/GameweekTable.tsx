@@ -57,10 +57,6 @@ export default function GameweekTable({
     fetchGameweekTable();
   }, [leagueId, gameweekNumber]);
 
-  if (!leagueMembers.length || loading) {
-    return <Loading />;
-  }
-
   return (
     <div>
       <div
@@ -102,7 +98,13 @@ export default function GameweekTable({
           <AiOutlinePlus />
         </IconButton>
       </div>
-      <LeagueTable leagueMembers={leagueMembers} session={session} />
+      {loading ? (
+        <Loading />
+      ) : leagueMembers.length === 0 ? (
+        <Text style={{ textAlign: "center" }}>No members in this gameweek</Text>
+      ) : (
+        <LeagueTable leagueMembers={leagueMembers} session={session} />
+      )}
     </div>
   );
 }

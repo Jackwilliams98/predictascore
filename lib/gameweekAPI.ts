@@ -107,11 +107,19 @@ export const createNewGameweek = async (
       startDate: new Date(saturday + "T00:00:00.000Z"),
       endDate: new Date(sunday + "T23:59:59.999Z"),
       season: { connect: { id: seasonId } },
-      League: {
-        connect: leagues.map((league) => ({ id: league.id })),
-      },
     },
   });
+
+  await Promise.all(
+    leagues.map((league) =>
+      prisma.gameweekLeague.create({
+        data: {
+          gameweekId: newGameweek.id,
+          leagueId: league.id,
+        },
+      })
+    )
+  );
 
   console.log(
     `Created new gameweek ${newGameweek.id} with number ${newGameweek.number}.`
@@ -260,66 +268,59 @@ export const getGameweekTable = async (
     `Fetching gameweek table for leagueId: ${leagueId}, gameweekNumber: ${gameweekNumber}`
   );
 
-  const gameweek = await prisma.gameweek.findFirst({
-    where: {
-      number: gameweekNumber,
-    },
+  // 1. Get all league members
+  const leagueMembers = await prisma.leagueMember.findMany({
+    where: { leagueId },
     include: {
-      League: {
-        where: {
-          id: leagueId,
-        },
-        include: {
-          members: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatar: true,
-                },
-              },
-              points: true,
-              correctPredictions: true,
-              goalDifference: true,
-            },
-          },
+      user: { select: { id: true, name: true, avatar: true } },
+    },
+  });
+
+  // 2. Get the gameweek
+  const gameweek = await prisma.gameweek.findFirst({
+    where: { number: gameweekNumber },
+    select: {
+      id: true,
+      predictions: {
+        select: {
+          userId: true,
+          points: true,
+          correctPredictions: true,
+          goalDifference: true,
         },
       },
     },
   });
 
-  if (!gameweek || !gameweek.League.length) {
-    throw new Error(
-      `League ${leagueId} not found for gameweek ${gameweekNumber}`
-    );
+  if (!gameweek) {
+    throw new Error(`Gameweek ${gameweekNumber} not found`);
   }
 
-  const league = gameweek.League[0];
+  const predictionsByUserId = Object.fromEntries(
+    gameweek.predictions.map((p) => [p.userId, p])
+  );
 
-  const sortedMembers = league.members.slice().sort((a, b) => {
-    if (b.points !== a.points) {
-      return b.points - a.points;
-    }
-    if (b.correctPredictions !== a.correctPredictions) {
+  const members = leagueMembers.map((member) => {
+    const prediction = predictionsByUserId[member.userId];
+    return {
+      userId: member.userId,
+      leagueId,
+      user: member.user,
+      points: prediction?.points ?? 0,
+      correctPredictions: prediction?.correctPredictions ?? 0,
+      goalDifference: prediction?.goalDifference ?? 0,
+    };
+  });
+
+  const sortedMembers = members.slice().sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.correctPredictions !== a.correctPredictions)
       return b.correctPredictions - a.correctPredictions;
-    }
     return Math.abs(a.goalDifference) - Math.abs(b.goalDifference);
   });
 
   return {
-    members: sortedMembers.map((member) => ({
-      userId: member.user.id,
-      leagueId: league.id,
-      user: {
-        id: member.user.id,
-        name: member.user.name,
-        avatar: member.user.avatar,
-      },
-      points: member.points,
-      correctPredictions: member.correctPredictions,
-      goalDifference: member.goalDifference,
-    })),
+    members: sortedMembers,
   };
 };
 
