@@ -69,6 +69,7 @@ model League {
   members           LeagueMember[]
   seasons           LeagueSeason[] // Link to seasons through a join table
   currentGameweekId String? // Optional: Points to the current active gameweek for this league
+  currentGameweek   Gameweek?      @relation(fields: [currentGameweekId], references: [id])
   gameweeks         GameweekLeague[]
 }
 
@@ -124,7 +125,8 @@ model Gameweek {
   currentSeason  Season?              @relation("CurrentGameweek")
   fixtures       GameweekFixture[]
   predictions    GameweekPrediction[]
-  GameweekLeague GameweekLeague[]
+  leagues        League[]
+  gameweekLeagues GameweekLeague[]
 
   @@unique([seasonId, number]) // Ensure unique gameweek numbers within a season
 }

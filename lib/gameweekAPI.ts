@@ -107,6 +107,9 @@ export const createNewGameweek = async (
       startDate: new Date(saturday + "T00:00:00.000Z"),
       endDate: new Date(sunday + "T23:59:59.999Z"),
       season: { connect: { id: seasonId } },
+      leagues: {
+        connect: leagues.map((league) => ({ id: league.id })),
+      },
     },
   });
 

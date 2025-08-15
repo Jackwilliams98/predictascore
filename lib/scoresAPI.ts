@@ -218,6 +218,10 @@ export async function getGameweekFixtureData() {
       },
     });
 
+    if (!fixtures || fixtures.length === 0) {
+      return null;
+    }
+
     const fixtureData = await Promise.all(
       fixtures.map(async (fixture) => {
         console.log(

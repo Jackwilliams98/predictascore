@@ -23,29 +23,11 @@ export const getUserPredictionLeagues = async (
       const league = await prisma.league.findUnique({
         where: { id: leagueMember.leagueId },
         include: {
-          gameweeks: {
-            where: {
-              gameweek: {
-                status: "ACTIVE",
-              },
-            },
-            include: {
-              gameweek: {
-                select: {
-                  id: true,
-                  deadline: true,
-                },
-              },
-            },
-          },
+          currentGameweek: { select: { id: true, deadline: true } },
         },
       });
 
-      if (
-        !league ||
-        !league.gameweeks.length ||
-        !league.gameweeks[0].gameweek
-      ) {
+      if (!league || !league.currentGameweek) {
         return {
           id: leagueMember.leagueId,
           name: leagueMember.league.name,
@@ -54,7 +36,7 @@ export const getUserPredictionLeagues = async (
         };
       }
 
-      const currentGameweekId = league.gameweeks[0].gameweek.id;
+      const currentGameweekId = league.currentGameweek.id;
 
       // Check if the user has submitted predictions for the current gameweek
       const userGameweekPrediction = await prisma.gameweekPrediction.findFirst({
@@ -69,7 +51,7 @@ export const getUserPredictionLeagues = async (
         id: league.id,
         name: league.name,
         currentGameweekId,
-        deadline: league.gameweeks[0].gameweek.deadline.toISOString(),
+        deadline: league.currentGameweek.deadline.toISOString(),
         isSubmitted,
       };
     })
@@ -183,10 +165,8 @@ export const upsertGameweekPredictions = async (
     where: {
       userId,
       league: {
-        gameweeks: {
-          some: {
-            gameweekId,
-          },
+        currentGameweek: {
+          id: gameweekId,
         },
       },
     },
