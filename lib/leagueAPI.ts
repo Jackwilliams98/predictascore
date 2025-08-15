@@ -1,7 +1,6 @@
 import { generateJoinCode } from "@/utils";
 import prisma from "./prisma";
 import { League, UserLeagueInfo } from "@/app/types";
-import { connect } from "http2";
 
 export const getCurrentSeason = async () => {
   const season = await prisma.season.findFirst({
