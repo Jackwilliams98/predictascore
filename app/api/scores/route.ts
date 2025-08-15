@@ -1,6 +1,5 @@
 import { getGameweekFixtureData, updateFixtureResults } from "@/lib/scoresAPI";
 import type { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest, res: NextResponse) {
   const authHeader = req.headers.get("authorization");
@@ -11,40 +10,11 @@ export async function GET(req: NextRequest, res: NextResponse) {
   }
 
   try {
-    // const gameweekFixtures = await getGameweekFixtureData();
+    const gameweekFixtures = await getGameweekFixtureData();
 
-    // if (!gameweekFixtures) {
-    //   return Response.json({ success: false, message: "No fixtures found." });
-    // }
-
-    const gameweekFixtures = [
-      {
-        externalId: 537787,
-        homeScore: 2,
-        awayScore: 1,
-      },
-      {
-        externalId: 537786,
-        homeScore: 1,
-        awayScore: 1,
-      },
-      {
-        externalId: 537792,
-        homeScore: 3,
-        awayScore: 0,
-      },
-      {
-        externalId: 537789,
-        homeScore: 0,
-        awayScore: 2,
-      },
-      { externalId: 540730, homeScore: 1, awayScore: 1 },
-      { externalId: 537791, homeScore: 2, awayScore: 2 },
-      { externalId: 537793, homeScore: 3, awayScore: 1 },
-      { externalId: 537788, homeScore: 0, awayScore: 0 },
-      { externalId: 540726, homeScore: 0, awayScore: 0 },
-      { externalId: 537790, homeScore: 0, awayScore: 0 },
-    ];
+    if (!gameweekFixtures) {
+      return Response.json({ success: false, message: "No fixtures found." });
+    }
 
     await Promise.all(
       gameweekFixtures.map(async (fixture) => {
