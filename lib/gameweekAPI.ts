@@ -1,7 +1,6 @@
 import { ApiFixture } from "@/app/types";
 import prisma from "./prisma";
 import { getUpcomingWeekendDates } from "@/utils/upcomingWeekend";
-import { Season } from "@prisma/client";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -251,4 +250,94 @@ export const createGameweekFixtures = async (
 
   console.log(`Created ${gameweekFixtures.length} gameweek fixtures.`);
   return gameweekFixtures;
+};
+
+export const getGameweekTable = async (
+  leagueId: string,
+  gameweekNumber: number
+) => {
+  console.log(
+    `Fetching gameweek table for leagueId: ${leagueId}, gameweekNumber: ${gameweekNumber}`
+  );
+
+  const gameweek = await prisma.gameweek.findFirst({
+    where: {
+      number: gameweekNumber,
+    },
+    include: {
+      League: {
+        where: {
+          id: leagueId,
+        },
+        include: {
+          members: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
+              },
+              points: true,
+              correctPredictions: true,
+              goalDifference: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!gameweek || !gameweek.League.length) {
+    throw new Error(
+      `League ${leagueId} not found for gameweek ${gameweekNumber}`
+    );
+  }
+
+  const league = gameweek.League[0];
+
+  const sortedMembers = league.members.slice().sort((a, b) => {
+    if (b.points !== a.points) {
+      return b.points - a.points;
+    }
+    if (b.correctPredictions !== a.correctPredictions) {
+      return b.correctPredictions - a.correctPredictions;
+    }
+    return Math.abs(a.goalDifference) - Math.abs(b.goalDifference);
+  });
+
+  return {
+    members: sortedMembers.map((member) => ({
+      userId: member.user.id,
+      leagueId: league.id,
+      user: {
+        id: member.user.id,
+        name: member.user.name,
+        avatar: member.user.avatar,
+      },
+      points: member.points,
+      correctPredictions: member.correctPredictions,
+      goalDifference: member.goalDifference,
+    })),
+  };
+};
+
+export const getTotalGameweeks = async () => {
+  const currentSeason = await prisma.season.findFirst({
+    where: {
+      isActive: true,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const totalGameweeks = await prisma.gameweek.count({
+    where: {
+      seasonId: currentSeason?.id,
+    },
+  });
+
+  return totalGameweeks;
 };

@@ -95,6 +95,8 @@ model LeagueMember {
   season   Season    @relation(fields: [seasonId], references: [id])
   user     User      @relation(fields: [userId], references: [id])
   points   Int       @default(0)
+  correctPredictions Int @default(0)
+  goalDifference Int @default(0)
 
   @@unique([userId, leagueId, seasonId]) // Ensure unique membership per league and season
 }
@@ -153,7 +155,9 @@ model GameweekPrediction {
   seasonId    String
   // leagueId    String Removed until predictions per league is implemented
   submitted   Boolean      @default(false) // Only true if the user has submitted all predictions for this gameweek
-  points      Int?
+  points      Int @default(0) // Total points scored in this gameweek
+  correctPredictions Int @default(0) // Number of correct predictions made by the user
+  goalDifference Int @default(0) // Difference in goals scored vs actual
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   gameweek    Gameweek     @relation(fields: [gameweekId], references: [id])
@@ -172,6 +176,8 @@ model Prediction {
   homeScore            Int
   awayScore            Int
   points               Int?
+  correctScore         Boolean            @default(false) // Indicates if the prediction was correct
+  goalDifference       Int?               // Difference in goals scored vs actual
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   fixture              Fixture            @relation(fields: [fixtureId], references: [id])

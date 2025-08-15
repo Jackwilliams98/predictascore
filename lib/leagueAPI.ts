@@ -116,7 +116,7 @@ export const getLeagueInfo = async (leagueId: string) => {
 
 // Get all members of a league
 export const getLeagueMembers = async (leagueId: string) => {
-  return await prisma.leagueMember.findMany({
+  const leagueMembers = await prisma.leagueMember.findMany({
     where: {
       leagueId,
     },
@@ -129,9 +129,16 @@ export const getLeagueMembers = async (leagueId: string) => {
         },
       },
     },
-    orderBy: {
-      points: "desc", // Order by points in descending order
-    },
+  });
+
+  return leagueMembers.slice().sort((a, b) => {
+    if (b.points !== a.points) {
+      return b.points - a.points;
+    }
+    if (b.correctPredictions !== a.correctPredictions) {
+      return b.correctPredictions - a.correctPredictions;
+    }
+    return Math.abs(a.goalDifference) - Math.abs(b.goalDifference);
   });
 };
 
@@ -219,13 +226,24 @@ export const joinLeague = async (joinCode: string, userId: string) => {
     },
   });
 
-  if (existingMember) {
+  if (existingMember && !existingMember.leftAt) {
     throw new Error("User is already a member of this league");
   }
 
   // Add the user to the league
-  const newMember = await prisma.leagueMember.create({
-    data: {
+  const newMember = await prisma.leagueMember.upsert({
+    where: {
+      userId_leagueId_seasonId: {
+        userId,
+        leagueId: league.id,
+        seasonId,
+      },
+    },
+    update: {
+      leftAt: null,
+      points: 0,
+    },
+    create: {
       userId,
       leagueId: league.id,
       seasonId,

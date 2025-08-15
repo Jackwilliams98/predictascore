@@ -1,5 +1,5 @@
-import { transformStandings } from "@/utils";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getGameweekTable } from "./gameweekAPI";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -11,20 +11,21 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-export const getMatchesByMatchday = async (
+export const getGameweek = async (
   req: NextApiRequest,
   res: NextApiResponse
 ) => {
-  const matchday = req.query.matchday as string;
-  const url = `https://api.football-data.org/v4/competitions/PL/matches?matchday=${matchday}`;
+  const { leagueId, gameweekNumber } = req.query;
+
+  if (!leagueId || !gameweekNumber) {
+    return res
+      .status(400)
+      .json({ error: "Missing leagueId or gameweekNumber" });
+  }
 
   try {
-    const matches = await fetch(url, {
-      method: "GET",
-      headers,
-    });
-    const data = await matches.json();
-    return res.status(200).json(data);
+    const response = await getGameweekTable(leagueId, gameweekNumber);
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error });
   }

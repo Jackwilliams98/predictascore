@@ -7,6 +7,7 @@ import Text from "@/components/Text/Text";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toaster } from "@/components/ui/toaster";
 
 export interface JoinLeagueFormType {
   joinCode: string;
@@ -29,20 +30,14 @@ export default function JoinLeagueForm() {
   } = useForm<JoinLeagueFormType>();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<JoinLeagueFormType> = async (data) => {
     setLoading(true);
-    setError(null);
-    setSuccess(null);
 
     const body = JSON.stringify({
       joinCode: data.joinCode,
       userId: userId,
     });
-
-    let leagueId: string | null = null;
 
     try {
       const response = await fetch("/api/league/join", {
@@ -59,15 +54,19 @@ export default function JoinLeagueForm() {
       }
 
       const league = await response.json();
-      setSuccess(`League "${league.name}" joined successfully!`);
-      leagueId = league.id;
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
-    } finally {
+
       setLoading(false);
-      if (leagueId) {
-        router.push(`/leagues/${leagueId}`);
-      }
+
+      toaster.create({
+        description: "Joined league successfully",
+        type: "success",
+      });
+      router.push(`/leagues/${league.leagueId}`);
+    } catch (err: any) {
+      toaster.create({
+        description: "Failed to join league: " + err.message,
+        type: "error",
+      });
     }
   };
 
@@ -117,12 +116,6 @@ export default function JoinLeagueForm() {
             Join League
           </Button>
         </form>
-        {error && (
-          <Text style={{ color: "red", marginTop: "10px" }}>{error}</Text>
-        )}
-        {success && (
-          <Text style={{ color: "green", marginTop: "10px" }}>{success}</Text>
-        )}
       </Card>
     </>
   );
