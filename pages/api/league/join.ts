@@ -30,6 +30,8 @@ async function joinLeagueHandler(req: NextApiRequest, res: NextApiResponse) {
     const league = await joinLeague(joinCode, userId);
     res.status(201).json(league);
   } catch (error) {
-    res.status(500).json({ error: "Failed to join league" });
+    res.status(400).json({
+      error: error instanceof Error ? error.message : "Failed to join league",
+    });
   }
 }

@@ -46,6 +46,7 @@ export async function updateFixtureResults({
     // 3. Score each prediction and update
     for (const prediction of predictions) {
       let points = 0;
+      let correctScore = false;
 
       // No score submitted
       if (prediction.homeScore === null || prediction.awayScore === null) {
@@ -59,6 +60,7 @@ export async function updateFixtureResults({
           ) {
             // Exact draw score
             points = 6;
+            correctScore = true;
           } else if (
             homeScore !== prediction.homeScore ||
             awayScore !== prediction.awayScore
@@ -79,6 +81,7 @@ export async function updateFixtureResults({
           ) {
             // Exact home win score
             points = 5;
+            correctScore = true;
           } else if (
             homeScore !== prediction.homeScore ||
             awayScore !== prediction.awayScore
@@ -99,6 +102,7 @@ export async function updateFixtureResults({
           ) {
             // Exact away win score
             points = 5;
+            correctScore = true;
           } else if (
             homeScore !== prediction.homeScore ||
             awayScore !== prediction.awayScore
@@ -115,13 +119,16 @@ export async function updateFixtureResults({
         points = -1;
       }
 
+      const goalDifference =
+        prediction.homeScore + prediction.awayScore - (homeScore + awayScore);
+
       await prisma.prediction.update({
         where: { id: prediction.id },
-        data: { points },
+        data: { points, correctScore, goalDifference },
       });
     }
 
-    // 4. For each GameweekPrediction, update total points
+    // 4. For each GameweekPrediction, update total points, correct predictions and goal difference
     const gameweekPredictionIds = Array.from(
       new Set(predictions.map((p) => p.gameweekPredictionId))
     );
@@ -130,13 +137,24 @@ export async function updateFixtureResults({
         where: { gameweekPredictionId: gwpId },
         _sum: { points: true },
       });
+      const correctPredictions = await prisma.prediction.count({
+        where: { gameweekPredictionId: gwpId, correctScore: true },
+      });
+      const goalDifference = await prisma.prediction.aggregate({
+        where: { gameweekPredictionId: gwpId },
+        _sum: { goalDifference: true },
+      });
       await prisma.gameweekPrediction.update({
         where: { id: gwpId },
-        data: { points: totalPoints._sum.points ?? 0 },
+        data: {
+          points: totalPoints._sum.points ?? 0,
+          correctPredictions,
+          goalDifference: goalDifference._sum.goalDifference ?? 0,
+        },
       });
     }
 
-    // 5. (Optional) Update LeagueMember points for each user in this fixture
+    // 5. Update LeagueMember points for each user in this fixture
     for (const prediction of predictions) {
       const gwp = prediction.gameweekPrediction;
       if (!gwp) continue;
@@ -156,7 +174,11 @@ export async function updateFixtureResults({
             // leagueId: member.leagueId, update when unique fixtures per league is implemented
             seasonId: member.seasonId,
           },
-          _sum: { points: true },
+          _sum: {
+            points: true,
+            correctPredictions: true,
+            goalDifference: true,
+          },
         });
 
         await prisma.leagueMember.update({
@@ -169,6 +191,8 @@ export async function updateFixtureResults({
           },
           data: {
             points: totalPoints._sum.points ?? 0,
+            correctPredictions: totalPoints._sum.correctPredictions ?? 0,
+            goalDifference: totalPoints._sum.goalDifference ?? 0,
           },
         });
       }
@@ -194,6 +218,10 @@ export async function getGameweekFixtureData() {
       },
     });
 
+    if (!fixtures || fixtures.length === 0) {
+      return null;
+    }
+
     const fixtureData = await Promise.all(
       fixtures.map(async (fixture) => {
         console.log(
@@ -210,8 +238,6 @@ export async function getGameweekFixtureData() {
         const data = await response.json();
 
         const { id, score } = data;
-
-        console.log(data);
 
         return {
           externalId: id,
