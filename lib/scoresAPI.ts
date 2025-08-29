@@ -158,48 +158,105 @@ export async function updateFixtureResults({
       });
     }
 
-    // 5. Update LeagueMember points for each user in this fixture
-    for (const prediction of predictions) {
-      const gwp = prediction.gameweekPrediction;
-      if (!gwp) continue;
+    // 5. Apply -10 penalty to users with no GameweekPredictions
+    const currentGameweek = await prisma.gameweek.findFirst({
+      where: {
+        status: "ACTIVE",
+      },
+      select: {
+        id: true,
+      },
+    });
+    const season = await prisma.season.findFirst({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-      const leagueMembers = await prisma.leagueMember.findMany({
-        where: {
-          // leagueId: gwp.leagueId, update when unique fixtures per league is implemented
-          seasonId: gwp.seasonId,
-        },
-      });
+    if (!currentGameweek || !season) {
+      console.warn("No active gameweek or season found.");
+      return {
+        success: true,
+        message: "Fixture results applied successfully.",
+      };
+    }
 
-      for (const member of leagueMembers) {
-        // Sum all GameweekPrediction points for this user/league/season
-        const totalPoints = await prisma.gameweekPrediction.aggregate({
+    const leagueMembers = await prisma.leagueMember.findMany({
+      where: {
+        // leagueId: gwp.leagueId, update when unique fixtures per league is implemented
+        seasonId: season.id,
+      },
+    });
+
+    const usersWithPrediction = await prisma.gameweekPrediction.findMany({
+      where: {
+        gameweekId: currentGameweek.id,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    const userIdsWithPrediction = new Set(
+      usersWithPrediction.map((p) => p.userId)
+    );
+
+    // For each user, if they haven't submitted, create a penalty GameweekPrediction
+    for (const member of leagueMembers) {
+      if (!userIdsWithPrediction.has(member.userId)) {
+        await prisma.gameweekPrediction.upsert({
           where: {
-            userId: member.userId,
-            // leagueId: member.leagueId, update when unique fixtures per league is implemented
-            seasonId: member.seasonId,
-          },
-          _sum: {
-            points: true,
-            correctPredictions: true,
-            goalDifference: true,
-          },
-        });
-
-        await prisma.leagueMember.update({
-          where: {
-            userId_leagueId_seasonId: {
+            userId_gameweekId: {
               userId: member.userId,
-              leagueId: member.leagueId,
-              seasonId: member.seasonId,
+              gameweekId: currentGameweek.id,
             },
           },
-          data: {
-            points: totalPoints._sum.points ?? 0,
-            correctPredictions: totalPoints._sum.correctPredictions ?? 0,
-            goalDifference: totalPoints._sum.goalDifference ?? 0,
+          update: {}, // No update if it exists (or you can update points if you want)
+          create: {
+            userId: member.userId,
+            seasonId: member.seasonId,
+            gameweekId: currentGameweek.id,
+            points: -10,
+            correctPredictions: 0,
+            goalDifference: 0,
           },
         });
       }
+    }
+
+    // 6. Update LeagueMember points for each user in this fixture
+    for (const member of leagueMembers) {
+      // Sum all GameweekPrediction points for this user/league/season
+      const totalPoints = await prisma.gameweekPrediction.aggregate({
+        where: {
+          userId: member.userId,
+          // leagueId: member.leagueId, update when unique fixtures per league is implemented
+          seasonId: member.seasonId,
+        },
+        _sum: {
+          points: true,
+          correctPredictions: true,
+          goalDifference: true,
+        },
+      });
+
+      await prisma.leagueMember.update({
+        where: {
+          userId_leagueId_seasonId: {
+            userId: member.userId,
+            leagueId: member.leagueId,
+            seasonId: member.seasonId,
+          },
+        },
+        data: {
+          points: totalPoints._sum.points ?? 0,
+          correctPredictions: totalPoints._sum.correctPredictions ?? 0,
+          goalDifference: totalPoints._sum.goalDifference ?? 0,
+        },
+      });
     }
 
     return { success: true, message: "Fixture results applied successfully." };
