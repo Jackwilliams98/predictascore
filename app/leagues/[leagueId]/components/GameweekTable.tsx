@@ -16,7 +16,7 @@ export default function GameweekTable({
   session: any;
   totalGameweeks: number;
 }) {
-  const [gameweekNumber, setGameweekNumber] = useState(1);
+  const [gameweekNumber, setGameweekNumber] = useState(totalGameweeks);
   const [leagueMembers, setLeagueMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 

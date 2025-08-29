@@ -1,6 +1,5 @@
 import { getGameweekFixtureData, updateFixtureResults } from "@/lib/scoresAPI";
 import type { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest, res: NextResponse) {
   const authHeader = req.headers.get("authorization");
@@ -19,9 +18,13 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     await Promise.all(
       gameweekFixtures.map(async (fixture) => {
-        const { externalId, homeScore, awayScore } = fixture; // full time scores
+        const { externalId, homeScore, awayScore, status } = fixture; // full time scores
 
-        if (homeScore === null || awayScore === null) {
+        if (
+          homeScore === null ||
+          awayScore === null ||
+          (status !== "FINISHED" && status !== "IN_PLAY" && status !== "PAUSED")
+        ) {
           console.warn(
             `Skipping fixture with externalId ${externalId} due to missing scores.`
           );
@@ -31,6 +34,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
           externalId,
           homeScore,
           awayScore,
+          status,
         });
       })
     );

@@ -68,29 +68,47 @@ export const getUserLeagues = async (
         },
       });
 
-      const currentGameweek = league?.currentGameweek;
+      const currentGameweekId = league?.currentGameweekId;
 
-      let gameweekRank = null;
-      if (currentGameweek) {
-        const userGameweekPrediction =
-          await prisma.gameweekPrediction.findFirst({
-            where: {
-              userId,
-              gameweekId: currentGameweek.id,
-            },
+      if (!currentGameweekId) {
+        throw new Error(
+          `Current gameweek not found for league ${leagueMember.leagueId}`
+        );
+      }
+
+      const leagueMembers = await prisma.leagueMember.findMany({
+        where: { leagueId: leagueMember.leagueId },
+        include: {
+          user: { select: { id: true } },
+        },
+      });
+
+      const members = await Promise.all(
+        leagueMembers.map(async (member) => {
+          const gameweekPrediction = await prisma.gameweekPrediction.findFirst({
+            where: { gameweekId: currentGameweekId, userId: member.userId },
           });
 
-        const userGameweekPoints = userGameweekPrediction?.points || 0;
+          return {
+            userId: member.userId,
+            leagueId: leagueMember.leagueId,
+            user: member.user,
+            points: gameweekPrediction?.points ?? 0,
+            correctPredictions: gameweekPrediction?.correctPredictions ?? 0,
+            goalDifference: gameweekPrediction?.goalDifference ?? 0,
+          };
+        })
+      );
 
-        gameweekRank = await prisma.gameweekPrediction.count({
-          where: {
-            gameweekId: currentGameweek.id,
-            points: { gt: userGameweekPoints },
-          },
-        });
+      const sortedMembers = members.slice().sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.correctPredictions !== a.correctPredictions)
+          return b.correctPredictions - a.correctPredictions;
+        return Math.abs(a.goalDifference) - Math.abs(b.goalDifference);
+      });
 
-        gameweekRank += 1;
-      }
+      const gameweekRank =
+        sortedMembers.findIndex((member) => member.userId === userId) + 1;
 
       return {
         id: leagueMember.league.id,
