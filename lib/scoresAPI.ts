@@ -1,4 +1,6 @@
+import { ApiFixture } from "@/app/types";
 import prisma from "@/lib/prisma";
+import { FixtureStatus } from "@prisma/client";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -18,10 +20,12 @@ export async function updateFixtureResults({
   externalId,
   homeScore,
   awayScore,
+  status,
 }: {
   externalId: number;
   homeScore: number;
   awayScore: number;
+  status: FixtureStatus;
 }) {
   try {
     // 1. Update the Fixture
@@ -30,7 +34,7 @@ export async function updateFixtureResults({
       data: {
         homeScore: homeScore,
         awayScore: awayScore,
-        status: "FINISHED",
+        status,
       },
       select: {
         id: true,
@@ -212,7 +216,13 @@ export async function updateFixtureResults({
 export async function getGameweekFixtureData() {
   try {
     const fixtures = await prisma.fixture.findMany({
-      where: { status: "SCHEDULED" },
+      where: {
+        OR: [
+          { status: "SCHEDULED" },
+          { status: "IN_PLAY" }, // LIVE
+          { status: "PAUSED" }, // LIVE
+        ],
+      },
       select: {
         externalId: true,
       },
@@ -222,12 +232,12 @@ export async function getGameweekFixtureData() {
       return null;
     }
 
-    const fixtureData = await Promise.all(
-      fixtures.map(async (fixture) => {
+    const fixtureData = [];
+    for (const fixture of fixtures) {
+      try {
         console.log(
           `Fetching fixture data for externalId: ${fixture.externalId}`
         );
-
         const response = await fetch(
           `https://api.football-data.org/v4/matches/${fixture.externalId}`,
           {
@@ -235,17 +245,25 @@ export async function getGameweekFixtureData() {
             headers,
           }
         );
-        const data = await response.json();
+        const data: ApiFixture = await response.json();
+        const { id, score, status } = data;
+        const { halfTime, fullTime } = score;
 
-        const { id, score } = data;
+        const homeScore =
+          fullTime.home !== null ? fullTime.home : halfTime.home;
+        const awayScore =
+          fullTime.away !== null ? fullTime.away : halfTime.away;
 
-        return {
+        fixtureData.push({
           externalId: id,
-          homeScore: score.fullTime.home,
-          awayScore: score.fullTime.away,
-        };
-      })
-    );
+          homeScore,
+          awayScore,
+          status,
+        });
+      } catch (error) {
+        console.error(`Failed to fetch fixture ${fixture.externalId}:`, error);
+      }
+    }
 
     return fixtureData;
   } catch (error) {
