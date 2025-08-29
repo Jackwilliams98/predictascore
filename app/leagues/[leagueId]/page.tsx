@@ -44,15 +44,15 @@ export default async function League({
           </Tabs.Trigger>
           <Tabs.Indicator />
         </Tabs.List>
-        <Tabs.Content value="overall">
-          <OverallTable leagueId={params.leagueId} session={session} />
-        </Tabs.Content>
         <Tabs.Content value="gameweek">
           <GameweekTable
             leagueId={params.leagueId}
             session={session}
             totalGameweeks={totalGameweeks}
           />
+        </Tabs.Content>
+        <Tabs.Content value="overall">
+          <OverallTable leagueId={params.leagueId} session={session} />
         </Tabs.Content>
       </Tabs.Root>
       <Text style={{ marginTop: "10px", fontSize: "18px" }}>

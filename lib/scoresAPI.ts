@@ -1,4 +1,6 @@
+import { ApiFixture } from "@/app/types";
 import prisma from "@/lib/prisma";
+import { FixtureStatus } from "@prisma/client";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -18,10 +20,12 @@ export async function updateFixtureResults({
   externalId,
   homeScore,
   awayScore,
+  status,
 }: {
   externalId: number;
   homeScore: number;
   awayScore: number;
+  status: FixtureStatus;
 }) {
   try {
     // 1. Update the Fixture
@@ -30,7 +34,7 @@ export async function updateFixtureResults({
       data: {
         homeScore: homeScore,
         awayScore: awayScore,
-        status: "FINISHED",
+        status,
       },
       select: {
         id: true,
@@ -154,48 +158,105 @@ export async function updateFixtureResults({
       });
     }
 
-    // 5. Update LeagueMember points for each user in this fixture
-    for (const prediction of predictions) {
-      const gwp = prediction.gameweekPrediction;
-      if (!gwp) continue;
+    // 5. Apply -10 penalty to users with no GameweekPredictions
+    const currentGameweek = await prisma.gameweek.findFirst({
+      where: {
+        status: "ACTIVE",
+      },
+      select: {
+        id: true,
+      },
+    });
+    const season = await prisma.season.findFirst({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-      const leagueMembers = await prisma.leagueMember.findMany({
-        where: {
-          // leagueId: gwp.leagueId, update when unique fixtures per league is implemented
-          seasonId: gwp.seasonId,
-        },
-      });
+    if (!currentGameweek || !season) {
+      console.warn("No active gameweek or season found.");
+      return {
+        success: true,
+        message: "Fixture results applied successfully.",
+      };
+    }
 
-      for (const member of leagueMembers) {
-        // Sum all GameweekPrediction points for this user/league/season
-        const totalPoints = await prisma.gameweekPrediction.aggregate({
+    const leagueMembers = await prisma.leagueMember.findMany({
+      where: {
+        // leagueId: gwp.leagueId, update when unique fixtures per league is implemented
+        seasonId: season.id,
+      },
+    });
+
+    const usersWithPrediction = await prisma.gameweekPrediction.findMany({
+      where: {
+        gameweekId: currentGameweek.id,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    const userIdsWithPrediction = new Set(
+      usersWithPrediction.map((p) => p.userId)
+    );
+
+    // For each user, if they haven't submitted, create a penalty GameweekPrediction
+    for (const member of leagueMembers) {
+      if (!userIdsWithPrediction.has(member.userId)) {
+        await prisma.gameweekPrediction.upsert({
           where: {
-            userId: member.userId,
-            // leagueId: member.leagueId, update when unique fixtures per league is implemented
-            seasonId: member.seasonId,
-          },
-          _sum: {
-            points: true,
-            correctPredictions: true,
-            goalDifference: true,
-          },
-        });
-
-        await prisma.leagueMember.update({
-          where: {
-            userId_leagueId_seasonId: {
+            userId_gameweekId: {
               userId: member.userId,
-              leagueId: member.leagueId,
-              seasonId: member.seasonId,
+              gameweekId: currentGameweek.id,
             },
           },
-          data: {
-            points: totalPoints._sum.points ?? 0,
-            correctPredictions: totalPoints._sum.correctPredictions ?? 0,
-            goalDifference: totalPoints._sum.goalDifference ?? 0,
+          update: {}, // No update if it exists (or you can update points if you want)
+          create: {
+            userId: member.userId,
+            seasonId: member.seasonId,
+            gameweekId: currentGameweek.id,
+            points: -10,
+            correctPredictions: 0,
+            goalDifference: 0,
           },
         });
       }
+    }
+
+    // 6. Update LeagueMember points for each user in this fixture
+    for (const member of leagueMembers) {
+      // Sum all GameweekPrediction points for this user/league/season
+      const totalPoints = await prisma.gameweekPrediction.aggregate({
+        where: {
+          userId: member.userId,
+          // leagueId: member.leagueId, update when unique fixtures per league is implemented
+          seasonId: member.seasonId,
+        },
+        _sum: {
+          points: true,
+          correctPredictions: true,
+          goalDifference: true,
+        },
+      });
+
+      await prisma.leagueMember.update({
+        where: {
+          userId_leagueId_seasonId: {
+            userId: member.userId,
+            leagueId: member.leagueId,
+            seasonId: member.seasonId,
+          },
+        },
+        data: {
+          points: totalPoints._sum.points ?? 0,
+          correctPredictions: totalPoints._sum.correctPredictions ?? 0,
+          goalDifference: totalPoints._sum.goalDifference ?? 0,
+        },
+      });
     }
 
     return { success: true, message: "Fixture results applied successfully." };
@@ -211,23 +272,50 @@ export async function updateFixtureResults({
 
 export async function getGameweekFixtureData() {
   try {
+    const latestUpdate = await prisma.fixture.findFirst({
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true },
+    });
+
+    const now = new Date();
+    const THRESHOLD_MINUTES = 10;
+
+    if (
+      latestUpdate &&
+      now.getTime() - latestUpdate.updatedAt.getTime() <
+        THRESHOLD_MINUTES * 60 * 1000
+    ) {
+      console.log("Skipping fixture update: updated recently.");
+      return null;
+    }
+
     const fixtures = await prisma.fixture.findMany({
-      where: { status: "SCHEDULED" },
+      where: {
+        kickoff: {
+          lte: now,
+        },
+        OR: [
+          { status: "SCHEDULED" },
+          { status: "IN_PLAY" }, // LIVE
+          { status: "PAUSED" }, // LIVE
+        ],
+      },
       select: {
         externalId: true,
       },
     });
 
     if (!fixtures || fixtures.length === 0) {
+      console.log("No fixtures to update.");
       return null;
     }
 
-    const fixtureData = await Promise.all(
-      fixtures.map(async (fixture) => {
+    const fixtureData = [];
+    for (const fixture of fixtures) {
+      try {
         console.log(
           `Fetching fixture data for externalId: ${fixture.externalId}`
         );
-
         const response = await fetch(
           `https://api.football-data.org/v4/matches/${fixture.externalId}`,
           {
@@ -235,17 +323,37 @@ export async function getGameweekFixtureData() {
             headers,
           }
         );
-        const data = await response.json();
 
-        const { id, score } = data;
+        if (!response.ok) {
+          console.warn(`No response for fixture ${fixture.externalId}`);
+          throw new Error(`Bad response: ${response.statusText}`);
+        }
 
-        return {
+        const data: ApiFixture = await response.json();
+
+        if (!data || !data.id || !data.score || !data.status) {
+          console.warn(`No data for fixture ${fixture.externalId}`);
+          throw new Error(`Missing fixture data: ${response.statusText}`);
+        }
+
+        const { id, score, status } = data;
+        const { halfTime, fullTime } = score;
+
+        const homeScore =
+          fullTime.home !== null ? fullTime.home : halfTime.home;
+        const awayScore =
+          fullTime.away !== null ? fullTime.away : halfTime.away;
+
+        fixtureData.push({
           externalId: id,
-          homeScore: score.fullTime.home,
-          awayScore: score.fullTime.away,
-        };
-      })
-    );
+          homeScore,
+          awayScore,
+          status,
+        });
+      } catch (error) {
+        console.error(`Failed to fetch fixture ${fixture.externalId}:`, error);
+      }
+    }
 
     return fixtureData;
   } catch (error) {

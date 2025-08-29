@@ -1,3 +1,5 @@
+import { FixtureStatus } from "@prisma/client";
+
 export type LeagueTableType = {
   position: number;
   team: TeamType;
@@ -82,7 +84,7 @@ export type UserPredictions = {
 export type ApiFixture = {
   id: number;
   utcDate: string;
-  status: string;
+  status: FixtureStatus;
   lastUpdated: string;
   homeTeam: {
     id: number;
