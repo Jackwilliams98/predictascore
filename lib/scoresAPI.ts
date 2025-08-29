@@ -215,8 +215,28 @@ export async function updateFixtureResults({
 
 export async function getGameweekFixtureData() {
   try {
+    const latestUpdate = await prisma.fixture.findFirst({
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true },
+    });
+
+    const now = new Date();
+    const THRESHOLD_MINUTES = 10;
+
+    if (
+      latestUpdate &&
+      now.getTime() - latestUpdate.updatedAt.getTime() <
+        THRESHOLD_MINUTES * 60 * 1000
+    ) {
+      console.log("Skipping fixture update: updated recently.");
+      return null;
+    }
+
     const fixtures = await prisma.fixture.findMany({
       where: {
+        kickoff: {
+          lte: now,
+        },
         OR: [
           { status: "SCHEDULED" },
           { status: "IN_PLAY" }, // LIVE
@@ -229,6 +249,7 @@ export async function getGameweekFixtureData() {
     });
 
     if (!fixtures || fixtures.length === 0) {
+      console.log("No fixtures to update.");
       return null;
     }
 
@@ -245,7 +266,19 @@ export async function getGameweekFixtureData() {
             headers,
           }
         );
+
+        if (!response.ok) {
+          console.warn(`No response for fixture ${fixture.externalId}`);
+          throw new Error(`Bad response: ${response.statusText}`);
+        }
+
         const data: ApiFixture = await response.json();
+
+        if (!data || !data.id || !data.score || !data.status) {
+          console.warn(`No data for fixture ${fixture.externalId}`);
+          throw new Error(`Missing fixture data: ${response.statusText}`);
+        }
+
         const { id, score, status } = data;
         const { halfTime, fullTime } = score;
 

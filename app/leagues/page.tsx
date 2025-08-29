@@ -6,6 +6,18 @@ import { Button } from "@/components";
 import Link from "next/link";
 
 export default async function Leagues() {
+  try {
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/scores`, {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${process.env.CRON_SECRET}`,
+      },
+      cache: "no-store",
+    });
+  } catch (e) {
+    console.warn("Fixture update failed:", e);
+  }
+
   const session = await auth();
 
   const leagues = await getUserLeagues(session?.user?.id);
