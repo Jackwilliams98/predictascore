@@ -19,7 +19,6 @@ export default async function Leagues() {
   }
 
   const session = await auth();
-
   const leagues = await getUserLeagues(session?.user?.id);
 
   return (
