@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prod": "npx dotenv -e .env -- next dev",
     "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",

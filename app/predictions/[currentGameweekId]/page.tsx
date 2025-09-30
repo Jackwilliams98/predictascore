@@ -21,12 +21,8 @@ export default async function CurrentGameweek({
   }
   const user = await getUserById(session?.user?.id);
 
-  const now = new Date().toLocaleString("en-GB", {
-    timeZone: "Europe/London",
-  });
-  const deadline = new Date(gameweek.deadline).toLocaleString("en-GB", {
-    timeZone: "UTC",
-  });
+  const now = new Date();
+  const deadline = new Date(gameweek.deadline);
 
   const isGameweekLive = deadline < now;
   const sortedFixtures = gameweek.fixtures.sort((a, b) => {

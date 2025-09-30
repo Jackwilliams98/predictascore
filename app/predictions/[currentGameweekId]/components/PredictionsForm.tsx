@@ -22,6 +22,14 @@ export default function PredictionsForm({
 }) {
   const { data: session } = useSession();
 
+  const textDeadline = new Date(deadline).toLocaleString("en-GB", {
+    month: "long",
+    year: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+  });
   const initialPredictions: UserPredictions = {};
   fixtures.forEach((fixture) => {
     initialPredictions[fixture.id] = {
@@ -102,45 +110,52 @@ export default function PredictionsForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      id="predictions-form"
-      className={classes.predictionsForm}
-    >
-      {fixtures.map((fixture) => {
-        const { id, homeTeam, awayTeam, kickoff } = fixture;
-
-        return (
-          <Card key={id}>
-            <Text.Title textAlign="center">
-              {new Date(kickoff).toLocaleString("en-GB", {
-                month: "long",
-                year: "numeric",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </Text.Title>
-            <ScorePredictor
-              homeTeam={homeTeam}
-              homeScore={predictions[id]?.homeScore || 0}
-              awayScore={predictions[id]?.awayScore || 0}
-              awayTeam={awayTeam}
-              fixtureId={id}
-              handleChange={handleChange}
-            />
-          </Card>
-        );
-      })}
-      <Button
+    <>
+      <div style={{ marginBottom: "12px", marginTop: "-12px" }}>
+        <Text.Title color="white" textAlign="center">
+          Deadline {textDeadline}
+        </Text.Title>
+      </div>
+      <form
+        onSubmit={handleSubmit}
         id="predictions-form"
-        type="submit"
-        style={{ marginTop: "20px" }}
-        loading={loading}
-        disabled={loading}
+        className={classes.predictionsForm}
       >
-        Submit Predictions
-      </Button>
-    </form>
+        {fixtures.map((fixture) => {
+          const { id, homeTeam, awayTeam, kickoff } = fixture;
+
+          return (
+            <Card key={id}>
+              <Text.Title textAlign="center">
+                {new Date(kickoff).toLocaleString("en-GB", {
+                  month: "long",
+                  year: "numeric",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text.Title>
+              <ScorePredictor
+                homeTeam={homeTeam}
+                homeScore={predictions[id]?.homeScore || 0}
+                awayScore={predictions[id]?.awayScore || 0}
+                awayTeam={awayTeam}
+                fixtureId={id}
+                handleChange={handleChange}
+              />
+            </Card>
+          );
+        })}
+        <Button
+          id="predictions-form"
+          type="submit"
+          style={{ marginTop: "20px" }}
+          loading={loading}
+          disabled={loading}
+        >
+          Submit Predictions
+        </Button>
+      </form>
+    </>
   );
 }
