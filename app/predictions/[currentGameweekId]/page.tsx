@@ -4,6 +4,7 @@ import { getGameweekPredictions } from "@/lib/predictionAPI";
 import PredictionsForm from "./components/PredictionsForm";
 import PredictionsLive from "./components/PredictionsLive";
 import { getUserById } from "@/lib/userAPI";
+import { DateTime } from "luxon";
 
 export default async function CurrentGameweek({
   params,
@@ -21,8 +22,8 @@ export default async function CurrentGameweek({
   }
   const user = await getUserById(session?.user?.id);
 
-  const now = new Date();
-  const deadline = new Date(gameweek.deadline);
+  const now = DateTime.now().setZone("Europe/London");
+  const deadline = DateTime.fromISO(gameweek.deadline).setZone("UTC");
 
   const isGameweekLive = deadline < now;
   const sortedFixtures = gameweek.fixtures.sort((a, b) => {
