@@ -1,5 +1,6 @@
 import { Avatar } from "@/components";
 import { Card } from "@/components/Card";
+import classes from "../../Leagues.module.css";
 
 // type LeagueMember = {
 //   id: string;
@@ -32,14 +33,7 @@ export default function LeagueTable({
 
   return (
     <Card style={{ paddingTop: 0 }}>
-      <table
-        style={{
-          textAlign: "left",
-          width: "100%",
-          borderSpacing: "0 8px",
-          borderCollapse: "separate",
-        }}
-      >
+      <table className={classes.leagueTable}>
         <thead>
           <tr>
             <th></th>

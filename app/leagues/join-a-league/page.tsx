@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toaster } from "@/components/ui/toaster";
-
+import classes from "../Leagues.module.css";
 export interface JoinLeagueFormType {
   joinCode: string;
 }
@@ -72,42 +72,20 @@ export default function JoinLeagueForm() {
 
   return (
     <>
-      {loading && (
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-          }}
-        >
-          <Loading />
-        </div>
-      )}
+      {loading && <Loading isCenterAligned />}
       <Card>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div
-            style={{
-              gap: "18px",
-              display: "flex",
-              flexDirection: "column",
-              marginBottom: "18px",
-            }}
-          >
+          <div className={classes.leagueFormContainer}>
             <Text.Header>Join code</Text.Header>
             <input
               {...register("joinCode", {
                 required: "Join code is required",
               })}
               placeholder="Enter join code"
-              style={{
-                width: "100%",
-                padding: "10px",
-                border: "2px solid #000",
-                borderRadius: "5px",
-                backgroundColor: "#f9f9f9",
-              }}
+              className={classes.leagueInput}
             />
             {errors.joinCode && (
-              <Text style={{ color: "red", marginTop: "5px" }}>
+              <Text className={classes.leagueError}>
                 {errors.joinCode.message}
               </Text>
             )}

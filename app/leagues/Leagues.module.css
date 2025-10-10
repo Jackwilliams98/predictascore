@@ -1,6 +1,44 @@
-.tableRow {
+.leagueTable {
+  text-align: left;
+  width: 100%;
+  border-spacing: 0 8px;
+  border-collapse: separate;
+}
+
+.leagueNameHeader {
   display: flex;
-  gap: 10px;
+  margin-top: -60px;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.leagueCode {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+.leagueFormContainer {
+  gap: 18px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.leagueInput {
+  width: 100%;
   padding: 10px;
-  border-bottom: 1px solid #ccc;
+  border: 2px solid #000;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.leagueError {
+  color: red;
+  margin-top: 5px;
+}
+
+.leagueSuccess {
+  color: green;
+  margin-top: 5px;
 }
