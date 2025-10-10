@@ -139,6 +139,7 @@ export const getGameweekPredictions = async (
     endDate: gameweekInfo.endDate.toISOString(),
     deadline: gameweekInfo.deadline.toISOString(),
     fixtures: fixturesWithPredictions,
+    isSubmitted: gameweekInfo.predictions.length > 0,
   };
 };
 

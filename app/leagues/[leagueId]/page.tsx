@@ -7,6 +7,7 @@ import { Tabs } from "@chakra-ui/react";
 import OverallTable from "./components/OverallTable";
 import GameweekTable from "./components/GameweekTable";
 import { getTotalGameweeks } from "@/lib/gameweekAPI";
+import classes from "../Leagues.module.css";
 
 export default async function League({
   params,
@@ -23,17 +24,9 @@ export default async function League({
 
   return (
     <div>
-      <Text.Header
-        style={{
-          display: "flex",
-          marginTop: "-60px",
-          justifyContent: "center",
-          marginBottom: "20px",
-          color: "#fff",
-        }}
-      >
-        {league.name}
-      </Text.Header>
+      <div className={classes.leagueNameHeader}>
+        <Text.Header>{league.name}</Text.Header>
+      </div>
       <Tabs.Root defaultValue="gameweek">
         <Tabs.List justifyContent="center">
           <Tabs.Trigger value="gameweek" fontSize="xl">
@@ -55,9 +48,7 @@ export default async function League({
           <OverallTable leagueId={params.leagueId} session={session} />
         </Tabs.Content>
       </Tabs.Root>
-      <Text style={{ marginTop: "10px", fontSize: "18px" }}>
-        League Code: {league.joinCode}
-      </Text>
+      <Text className={classes.leagueCode}>League Code: {league.joinCode}</Text>
       <LeaveLeagueButton
         leagueName={league.name}
         leagueId={params.leagueId}

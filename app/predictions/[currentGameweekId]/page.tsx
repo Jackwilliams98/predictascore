@@ -5,6 +5,7 @@ import PredictionsForm from "./components/PredictionsForm";
 import PredictionsLive from "./components/PredictionsLive";
 import { getUserById } from "@/lib/userAPI";
 import { DateTime } from "luxon";
+import CurrentGameweekClient from "./components/CurrentGameweekClient";
 
 export default async function CurrentGameweek({
   params,
@@ -20,14 +21,21 @@ export default async function CurrentGameweek({
   if (!session || !gameweek) {
     return <Text>Loading...</Text>;
   }
-  const user = await getUserById(session?.user?.id);
-
+  const isSubmitted = gameweek.isSubmitted;
   const now = DateTime.now().setZone("Europe/London");
-  const deadline = DateTime.fromISO(gameweek.deadline).setZone("UTC");
+  const deadline = DateTime.fromISO(gameweek.deadline).setZone("Europe/London");
 
   const isGameweekLive = deadline < now;
   const sortedFixtures = gameweek.fixtures.sort((a, b) => {
     return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+  });
+
+  const textDeadline = deadline.toLocaleString({
+    month: "long",
+    year: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
   return (
@@ -43,15 +51,18 @@ export default async function CurrentGameweek({
       >
         Gameweek {gameweek.gameweekNumber}
       </Text.Header>
-      {isGameweekLive ? (
-        <PredictionsLive fixtures={sortedFixtures} />
-      ) : (
-        <PredictionsForm
-          deadline={gameweek.deadline}
-          fixtures={sortedFixtures}
-          gameweekId={gameweek.gameweekId}
-        />
-      )}
+      <div style={{ marginBottom: "12px", marginTop: "-12px" }}>
+        <Text.Title color="white" textAlign="center">
+          Deadline {textDeadline}
+        </Text.Title>
+      </div>
+      <CurrentGameweekClient
+        isGameweekLive={isGameweekLive}
+        isSubmitted={isSubmitted}
+        sortedFixtures={sortedFixtures}
+        deadline={gameweek.deadline}
+        gameweekId={gameweek.gameweekId}
+      />
     </div>
   );
 }

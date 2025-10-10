@@ -7,7 +7,7 @@ import Text from "@/components/Text/Text";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
+import classes from "../Leagues.module.css";
 export interface CreateLeagueFormType {
   leagueName: string;
 }
@@ -73,42 +73,20 @@ export default function CreateLeagueForm() {
 
   return (
     <>
-      {loading && (
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-          }}
-        >
-          <Loading />
-        </div>
-      )}
+      {loading && <Loading isCenterAligned />}
       <Card>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div
-            style={{
-              gap: "18px",
-              display: "flex",
-              flexDirection: "column",
-              marginBottom: "18px",
-            }}
-          >
+          <div className={classes.leagueFormContainer}>
             <Text.Header>Name of your league</Text.Header>
             <input
               {...register("leagueName", {
                 required: "League name is required",
               })}
               placeholder="Enter league name"
-              style={{
-                width: "100%",
-                padding: "10px",
-                border: "2px solid #000",
-                borderRadius: "5px",
-                backgroundColor: "#f9f9f9",
-              }}
+              className={classes.leagueInput}
             />
             {errors.leagueName && (
-              <Text style={{ color: "red", marginTop: "5px" }}>
+              <Text className={classes.leagueError}>
                 {errors.leagueName.message}
               </Text>
             )}
@@ -117,12 +95,8 @@ export default function CreateLeagueForm() {
             Create League
           </Button>
         </form>
-        {error && (
-          <Text style={{ color: "red", marginTop: "10px" }}>{error}</Text>
-        )}
-        {success && (
-          <Text style={{ color: "green", marginTop: "10px" }}>{success}</Text>
-        )}
+        {error && <Text className={classes.leagueError}>{error}</Text>}
+        {success && <Text className={classes.leagueSuccess}>{success}</Text>}
       </Card>
     </>
   );
