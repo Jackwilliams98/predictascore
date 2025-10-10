@@ -15,21 +15,15 @@ export default function PredictionsForm({
   deadline,
   fixtures,
   gameweekId,
+  onSubmit,
 }: {
   deadline: string;
   fixtures: GameweekFixture[];
   gameweekId: string;
+  onSubmit: () => void;
 }) {
   const { data: session } = useSession();
 
-  const textDeadline = new Date(deadline).toLocaleString("en-GB", {
-    month: "long",
-    year: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "UTC",
-  });
   const initialPredictions: UserPredictions = {};
   fixtures.forEach((fixture) => {
     initialPredictions[fixture.id] = {
@@ -98,6 +92,7 @@ export default function PredictionsForm({
         description: "Predictions submitted successfully!",
         type: "success",
       });
+      if (onSubmit) onSubmit();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
       toaster.create({
@@ -111,11 +106,6 @@ export default function PredictionsForm({
 
   return (
     <>
-      <div style={{ marginBottom: "12px", marginTop: "-12px" }}>
-        <Text.Title color="white" textAlign="center">
-          Deadline {textDeadline}
-        </Text.Title>
-      </div>
       <form
         onSubmit={handleSubmit}
         id="predictions-form"

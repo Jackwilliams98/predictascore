@@ -75,6 +75,7 @@ export type GameweekInfo = {
   endDate: string;
   deadline: string;
   fixtures: GameweekFixture[];
+  isSubmitted: boolean;
 };
 
 export type UserPredictions = {

@@ -1,6 +1,7 @@
 import { ApiFixture } from "@/app/types";
 import prisma from "./prisma";
 import { getUpcomingWeekendDates } from "@/utils/upcomingWeekend";
+import { DateTime } from "luxon";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -96,16 +97,30 @@ export const createNewGameweek = async (
     throw new Error("Could not determine the upcoming weekend dates");
   }
 
-  const deadline = new Date(saturday + "T11:00:00.000Z").toISOString();
+  const startDate = DateTime.fromISO(saturday + "T00:00:00", {
+    zone: "Europe/London",
+  })
+    .toUTC()
+    .toJSDate();
+  const endDate = DateTime.fromISO(sunday + "T23:59:59.999", {
+    zone: "Europe/London",
+  })
+    .toUTC()
+    .toJSDate();
+  const deadline = DateTime.fromISO(saturday + "T11:00:00", {
+    zone: "Europe/London",
+  })
+    .toUTC()
+    .toJSDate();
 
   const newGameweek = await prisma.gameweek.create({
     data: {
       number: newGameweekNumber,
       status: "ACTIVE",
-      deadline: deadline,
+      deadline,
       isComplete: false,
-      startDate: new Date(saturday + "T00:00:00.000Z"),
-      endDate: new Date(sunday + "T23:59:59.999Z"),
+      startDate,
+      endDate,
       season: { connect: { id: seasonId } },
       leagues: {
         connect: leagues.map((league) => ({ id: league.id })),
