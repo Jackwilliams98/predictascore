@@ -17,12 +17,12 @@ const headers = {
  * @param fixtureResults Array of objects: { fixtureId, homeScore, awayScore }
  */
 export async function updateFixtureResults({
-  externalId,
+  id,
   homeScore,
   awayScore,
   status,
 }: {
-  externalId: number;
+  id: string;
   homeScore: number;
   awayScore: number;
   status: FixtureStatus;
@@ -30,7 +30,7 @@ export async function updateFixtureResults({
   try {
     // 1. Update the Fixture
     const fixture = await prisma.fixture.update({
-      where: { externalId },
+      where: { id },
       data: {
         homeScore: homeScore,
         awayScore: awayScore,
@@ -301,7 +301,11 @@ export async function getGameweekFixtureData() {
         ],
       },
       select: {
+        id: true,
         externalId: true,
+        homeScore: true,
+        awayScore: true,
+        status: true,
       },
     });
 
@@ -312,6 +316,19 @@ export async function getGameweekFixtureData() {
 
     const fixtureData = [];
     for (const fixture of fixtures) {
+      if (!fixture.externalId) {
+        const { id, homeScore, awayScore, status } = fixture;
+
+        fixtureData.push({
+          id,
+          homeScore,
+          awayScore,
+          status,
+        });
+
+        continue;
+      }
+
       try {
         console.log(
           `Fetching fixture data for externalId: ${fixture.externalId}`
@@ -345,6 +362,7 @@ export async function getGameweekFixtureData() {
           fullTime.away !== null ? fullTime.away : halfTime.away;
 
         fixtureData.push({
+          id: fixture.id,
           externalId: id,
           homeScore,
           awayScore,

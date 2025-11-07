@@ -18,20 +18,22 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     await Promise.all(
       gameweekFixtures.map(async (fixture) => {
-        const { externalId, homeScore, awayScore, status } = fixture; // full time scores
+        const { id, homeScore, awayScore, status } = fixture; // full time scores
+
+        console.log(
+          `Processing fixture with id: ${id}, homeScore: ${homeScore}, awayScore: ${awayScore}, status: ${status}`
+        );
 
         if (
           homeScore === null ||
           awayScore === null ||
           (status !== "FINISHED" && status !== "IN_PLAY" && status !== "PAUSED")
         ) {
-          console.warn(
-            `Skipping fixture with externalId ${externalId} due to missing scores.`
-          );
+          console.warn(`Skipping fixture with id ${id} due to missing scores.`);
           return;
         }
         await updateFixtureResults({
-          externalId,
+          id,
           homeScore,
           awayScore,
           status,

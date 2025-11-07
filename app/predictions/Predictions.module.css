@@ -31,3 +31,35 @@
   align-items: center;
   justify-content: center;
 }
+
+.fixtureCardContainer {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.fixtureCardTitle {
+  gap: 8px;
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+  align-items: center;
+}
+
+.fixtureCardScore {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.flex {
+  flex: 1;
+}
+
+.editFixtureLabel {
+  margin: 0 4px 8px 0;
+}
+
+.editFixtureInput {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}

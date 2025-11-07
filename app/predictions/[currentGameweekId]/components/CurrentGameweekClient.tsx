@@ -3,6 +3,9 @@ import { useState } from "react";
 import PredictionsForm from "./PredictionsForm";
 import PredictionsLive from "./PredictionsLive";
 import { useRouter } from "next/navigation";
+import { Role } from "@prisma/client";
+import { Switch } from "@chakra-ui/react";
+import EditGameweek from "./EditGameweek";
 
 export default function CurrentGameweekClient({
   isGameweekLive,
@@ -10,14 +13,18 @@ export default function CurrentGameweekClient({
   sortedFixtures,
   deadline,
   gameweekId,
+  role,
 }: {
   isGameweekLive: boolean;
   isSubmitted: boolean;
   sortedFixtures: any[];
   deadline: string;
   gameweekId: string;
+  role: string;
 }) {
   const [showForm, setShowForm] = useState(!isGameweekLive && !isSubmitted);
+  const [isEditGameweek, setIsEditGameweek] = useState(false);
+
   const router = useRouter();
 
   const handleEdit = () => setShowForm(true);
@@ -26,17 +33,34 @@ export default function CurrentGameweekClient({
     router.refresh();
   };
 
-  return showForm ? (
-    <PredictionsForm
-      deadline={deadline}
-      fixtures={sortedFixtures}
-      gameweekId={gameweekId}
-      onSubmit={handleSubmit}
-    />
-  ) : (
-    <PredictionsLive
-      fixtures={sortedFixtures}
-      onEdit={isGameweekLive ? undefined : handleEdit}
-    />
+  return (
+    <>
+      {isEditGameweek ? (
+        <EditGameweek fixtures={sortedFixtures} />
+      ) : showForm ? (
+        <PredictionsForm
+          deadline={deadline}
+          fixtures={sortedFixtures}
+          gameweekId={gameweekId}
+          onSubmit={handleSubmit}
+        />
+      ) : (
+        <PredictionsLive
+          fixtures={sortedFixtures}
+          onEdit={isGameweekLive ? undefined : handleEdit}
+        />
+      )}
+      {role === Role.ADMIN && (
+        <Switch.Root
+          colorPalette="green"
+          checked={isEditGameweek}
+          onCheckedChange={(e) => setIsEditGameweek(e.checked)}
+        >
+          <Switch.HiddenInput />
+          <Switch.Control />
+          <Switch.Label>Toggle Edit Gameweek</Switch.Label>
+        </Switch.Root>
+      )}
+    </>
   );
 }

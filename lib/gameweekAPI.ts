@@ -2,6 +2,7 @@ import { ApiFixture } from "@/app/types";
 import prisma from "./prisma";
 import { getUpcomingWeekendDates } from "@/utils/upcomingWeekend";
 import { DateTime } from "luxon";
+import { FixtureStatus } from "@prisma/client";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -359,4 +360,92 @@ export const getTotalGameweeks = async () => {
   });
 
   return totalGameweeks;
+};
+
+export const getCurrentGameweek = async () => {
+  const currentGameweek = await prisma.gameweek.findFirst({
+    where: {
+      status: "ACTIVE",
+    },
+  });
+
+  return currentGameweek;
+};
+
+export const upsertManualGameweekFixture = async (
+  gameweekId: string,
+  fixture: {
+    id?: string;
+    homeTeam: string;
+    awayTeam: string;
+    kickoff: string;
+    homeScore?: number | null;
+    awayScore?: number | null;
+    status?: FixtureStatus;
+  }
+) => {
+  const upsertedFixture = await prisma.fixture.upsert({
+    where: fixture.id
+      ? { id: fixture.id }
+      : {
+          kickoff_homeTeam_awayTeam: {
+            kickoff: new Date(fixture.kickoff),
+            homeTeam: fixture.homeTeam,
+            awayTeam: fixture.awayTeam,
+          },
+        },
+    update: {
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+      kickoff: new Date(fixture.kickoff),
+      homeScore: fixture.homeScore ?? null,
+      awayScore: fixture.awayScore ?? null,
+      status: fixture.status ?? FixtureStatus.SCHEDULED,
+    },
+    create: {
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+      kickoff: new Date(fixture.kickoff),
+      homeScore: fixture.homeScore ?? null,
+      awayScore: fixture.awayScore ?? null,
+      status: fixture.status ?? FixtureStatus.SCHEDULED,
+    },
+  });
+
+  if (!upsertedFixture) {
+    throw new Error("Failed to upsert fixture");
+  }
+
+  const existingGWFixture = await prisma.gameweekFixture.findFirst({
+    where: {
+      gameweekId,
+      fixtureId: upsertedFixture.id,
+    },
+  });
+
+  if (!existingGWFixture) {
+    await createGameweekFixtures([{ id: upsertedFixture.id }], {
+      id: gameweekId,
+    });
+  }
+
+  return upsertedFixture;
+};
+
+export const deleteManualGameweekFixture = async (
+  gameweekId: string,
+  fixtureId: string
+) => {
+  await prisma.gameweekFixture.deleteMany({
+    where: {
+      gameweekId,
+      fixtureId,
+    },
+  });
+
+  await prisma.fixture.delete({
+    where: {
+      id: fixtureId,
+    },
+  });
 };
