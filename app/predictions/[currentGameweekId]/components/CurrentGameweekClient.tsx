@@ -36,7 +36,10 @@ export default function CurrentGameweekClient({
   return (
     <>
       {isEditGameweek ? (
-        <EditGameweek fixtures={sortedFixtures} />
+        <EditGameweek
+          fixtures={sortedFixtures}
+          isGameweekLive={isGameweekLive}
+        />
       ) : showForm ? (
         <PredictionsForm
           deadline={deadline}
@@ -48,8 +51,10 @@ export default function CurrentGameweekClient({
         <PredictionsLive
           fixtures={sortedFixtures}
           onEdit={isGameweekLive ? undefined : handleEdit}
+          isGameweekLive={isGameweekLive}
         />
       )}
+      <div style={{ marginTop: "1rem" }} />
       {role === Role.ADMIN && (
         <Switch.Root
           colorPalette="green"

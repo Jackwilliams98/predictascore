@@ -7,9 +7,13 @@ import EditFixtureModal from "./EditFixtureModal";
 
 interface EditGameweekProps {
   fixtures: GameweekFixture[];
+  isGameweekLive: boolean;
 }
 
-const EditGameweek: React.FC<EditGameweekProps> = ({ fixtures }) => {
+const EditGameweek: React.FC<EditGameweekProps> = ({
+  fixtures,
+  isGameweekLive,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -23,12 +27,14 @@ const EditGameweek: React.FC<EditGameweekProps> = ({ fixtures }) => {
           awayScore,
           kickoff,
           points,
+          status,
         } = fixture;
 
         return (
           <FixtureCard
             key={id}
             isEditGameweek={true}
+            isGameweekLive={isGameweekLive}
             id={id}
             homeTeam={homeTeam}
             homeScore={homeScore}
@@ -36,15 +42,18 @@ const EditGameweek: React.FC<EditGameweekProps> = ({ fixtures }) => {
             awayScore={awayScore}
             kickoff={kickoff}
             points={points}
+            status={status}
           />
         );
       })}
-      <Dialog.Root onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
-        <Dialog.Trigger asChild>
-          <Button>Add Fixture</Button>
-        </Dialog.Trigger>
-        <EditFixtureModal isOpen={isOpen} setIsOpen={setIsOpen} />
-      </Dialog.Root>
+      {!isGameweekLive && (
+        <Dialog.Root onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
+          <Dialog.Trigger asChild>
+            <Button>Add Fixture</Button>
+          </Dialog.Trigger>
+          <EditFixtureModal isOpen={isOpen} setIsOpen={setIsOpen} />
+        </Dialog.Root>
+      )}
     </div>
   );
 };

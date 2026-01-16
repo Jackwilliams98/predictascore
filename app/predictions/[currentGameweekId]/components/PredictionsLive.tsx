@@ -5,9 +5,11 @@ import { FixtureCard } from "./FixtureCard";
 export default function PredictionsLive({
   fixtures,
   onEdit,
+  isGameweekLive,
 }: {
   fixtures: GameweekFixture[];
   onEdit?: () => void;
+  isGameweekLive: boolean;
 }) {
   return (
     <>
@@ -21,6 +23,7 @@ export default function PredictionsLive({
           kickoff,
           points,
           prediction,
+          status,
         } = fixture;
 
         if (!prediction) {
@@ -38,6 +41,8 @@ export default function PredictionsLive({
               kickoff={kickoff}
               points={points}
               prediction={prediction}
+              isGameweekLive={isGameweekLive}
+              status={status}
             />
           </div>
         );

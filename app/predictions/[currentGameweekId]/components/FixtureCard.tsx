@@ -1,9 +1,11 @@
+import { useState } from "react";
+import { Dialog } from "@chakra-ui/react";
 import Text from "@/components/Text/Text";
 import { Card } from "@/components/Card";
 import classes from "../../Predictions.module.css";
 import EditFixtureModal from "./EditFixtureModal";
-import { Dialog } from "@chakra-ui/react";
-import { useState } from "react";
+import EditScoreModal from "./EditScoreModal";
+import { FixtureStatus } from "@prisma/client";
 
 interface FixtureCardProps {
   id: string;
@@ -18,6 +20,8 @@ interface FixtureCardProps {
     awayScore: number | null;
   };
   isEditGameweek?: boolean;
+  isGameweekLive?: boolean;
+  status?: FixtureStatus;
 }
 
 export const FixtureCard: React.FC<FixtureCardProps> = ({
@@ -30,6 +34,8 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({
   points,
   prediction,
   isEditGameweek = false,
+  isGameweekLive = false,
+  status,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -53,29 +59,45 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({
       </Text>
       <Text.Title className={classes.fixtureCardTitle}>
         <div className={classes.flex}>{homeTeam}</div>
-        {!isEditGameweek && (
-          <div className={classes.flex}>
-            {prediction?.homeScore || 0}:{prediction?.awayScore || 0}
+        {isEditGameweek ? (
+          isGameweekLive && (
+            <Text className={classes.fixtureCardScore}>
+              Score:
+              {homeScore !== null && awayScore !== null
+                ? `${homeScore}:${awayScore}`
+                : " N/A"}
+            </Text>
+          )
+        ) : (
+          <div className={classes.flex} style={{ marginBottom: "8px" }}>
+            Prediction: {prediction?.homeScore}:{prediction?.awayScore}
           </div>
         )}
         <div className={classes.flex}>{awayTeam}</div>
       </Text.Title>
+      {!isEditGameweek && isGameweekLive && (
+        <Text className={classes.fixtureCardScore}>
+          Score:
+          {homeScore !== null && awayScore !== null
+            ? `${homeScore}:${awayScore}`
+            : " N/A"}
+        </Text>
+      )}
+      {isEditGameweek && status && (
+        <Text className={classes.fixtureCardStatus}>
+          Fixture status: {status}
+        </Text>
+      )}
       {points !== null && (
-        <>
-          <Text className={classes.fixtureCardScore}>
-            Actual Score:{" "}
-            {`${homeScore && homeScore}:${awayScore && awayScore}`}
-          </Text>
-          <span
-            className={classes.points}
-            style={{
-              backgroundColor:
-                points === 0 ? "#fff9c4" : points > 0 ? "#d4edda" : "#f8d7da",
-            }}
-          >
-            <Text style={{ marginInlineStart: "2px" }}>{points}</Text>
-          </span>
-        </>
+        <span
+          className={classes.points}
+          style={{
+            backgroundColor:
+              points === 0 ? "#fff9c4" : points > 0 ? "#d4edda" : "#f8d7da",
+          }}
+        >
+          <Text style={{ marginInlineStart: "2px" }}>{points}</Text>
+        </span>
       )}
     </Card>
   );
@@ -84,14 +106,28 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({
     return (
       <Dialog.Root onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
         <Dialog.Trigger asChild>{cardComponent}</Dialog.Trigger>
-        <EditFixtureModal
-          id={id}
-          homeTeam={homeTeam}
-          awayTeam={awayTeam}
-          kickoff={kickoff}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-        />
+        {isGameweekLive ? (
+          <EditScoreModal
+            id={id}
+            homeTeam={homeTeam}
+            awayTeam={awayTeam}
+            homeScore={homeScore}
+            awayScore={awayScore}
+            status={status}
+            kickoff={kickoff}
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+          />
+        ) : (
+          <EditFixtureModal
+            id={id}
+            homeTeam={homeTeam}
+            awayTeam={awayTeam}
+            kickoff={kickoff}
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+          />
+        )}
       </Dialog.Root>
     );
   } else {
