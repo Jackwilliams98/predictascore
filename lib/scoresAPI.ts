@@ -23,8 +23,8 @@ export async function updateFixtureResults({
   status,
 }: {
   id: string;
-  homeScore: number;
-  awayScore: number;
+  homeScore: number | null;
+  awayScore: number | null;
   status: FixtureStatus;
 }) {
   try {
@@ -52,8 +52,13 @@ export async function updateFixtureResults({
       let points = 0;
       let correctScore = false;
 
-      // No score submitted
-      if (prediction.homeScore === null || prediction.awayScore === null) {
+      // No score submitted or fixture scores are null
+      if (
+        prediction.homeScore === null ||
+        prediction.awayScore === null ||
+        homeScore === null ||
+        awayScore === null
+      ) {
         points = 0;
       } else if (homeScore === awayScore) {
         // Draw
@@ -124,7 +129,11 @@ export async function updateFixtureResults({
       }
 
       const goalDifference =
-        prediction.homeScore + prediction.awayScore - (homeScore + awayScore);
+        homeScore === null || awayScore === null
+          ? 0
+          : prediction.homeScore +
+            prediction.awayScore -
+            (homeScore + awayScore);
 
       await prisma.prediction.update({
         where: { id: prediction.id },
