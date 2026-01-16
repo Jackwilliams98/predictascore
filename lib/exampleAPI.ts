@@ -1,4 +1,4 @@
-// import prisma from "./prisma";
+// import { prisma } from "./prisma";
 
 // // Get league standings for a specific gameweek
 // const getGameweekStandings = async (gameweekId: number) => {

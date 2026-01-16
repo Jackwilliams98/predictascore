@@ -2,17 +2,10 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../prisma/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-let prisma: PrismaClient;
-
-if (process.env.NODE_ENV === "production") {
-  prisma = new PrismaClient();
-} else {
-  if (!global.prisma) {
-    global.prisma = new PrismaClient();
-  }
-  prisma = global.prisma;
-}
-
-export default prisma;
+const adapter = new PrismaPg({
+  connectionString: process.env.POSTGRES_DATABASE_URL!,
+});
+export const prisma = new PrismaClient({ adapter });

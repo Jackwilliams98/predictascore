@@ -1,5 +1,5 @@
 import { generateJoinCode } from "@/utils";
-import prisma from "./prisma";
+import { prisma } from "./prisma";
 import { League, UserLeagueInfo } from "@/app/types";
 
 export const getCurrentSeason = async () => {

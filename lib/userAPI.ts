@@ -1,4 +1,4 @@
-import prisma from "./prisma";
+import { prisma } from "./prisma";
 import { User as dbUser } from "@prisma/client";
 
 // Create a new user

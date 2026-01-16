@@ -1,5 +1,5 @@
 import { ApiFixture } from "@/app/types";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { FixtureStatus } from "@prisma/client";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;

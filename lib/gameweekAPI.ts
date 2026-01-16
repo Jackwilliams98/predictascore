@@ -1,5 +1,5 @@
 import { ApiFixture } from "@/app/types";
-import prisma from "./prisma";
+import { prisma } from "./prisma";
 import { getUpcomingWeekendDates } from "@/utils/upcomingWeekend";
 import { DateTime } from "luxon";
 import { FixtureStatus } from "@prisma/client";
