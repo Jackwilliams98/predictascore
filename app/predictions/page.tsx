@@ -4,18 +4,6 @@ import Text from "@/components/Text/Text";
 import { getUserPredictionLeagues } from "@/lib/predictionAPI";
 
 export default async function Predictions() {
-  try {
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/scores`, {
-      method: "GET",
-      headers: {
-        authorization: `Bearer ${process.env.CRON_SECRET}`,
-      },
-      cache: "no-store",
-    });
-  } catch (e) {
-    console.warn("Fixture update failed:", e);
-  }
-
   const session = await auth();
   const leagues = await getUserPredictionLeagues(session?.user?.id);
 

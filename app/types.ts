@@ -45,6 +45,7 @@ export type GameweekFixture = {
   kickoff: string;
   points: number | null;
   prediction: GameweekPrediction | null;
+  status: FixtureStatus;
 };
 
 export type GameweekPrediction = {

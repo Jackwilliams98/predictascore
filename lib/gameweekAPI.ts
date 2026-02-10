@@ -2,6 +2,7 @@ import { ApiFixture } from "@/app/types";
 import prisma from "./prisma";
 import { getUpcomingWeekendDates } from "@/utils/upcomingWeekend";
 import { DateTime } from "luxon";
+import { FixtureStatus } from "@prisma/client";
 
 const token = process.env.NEXT_PUBLIC_FOOTBALL_API_TOKEN;
 if (!token) {
@@ -39,7 +40,7 @@ export const updateCurrentGameweek = async () => {
 
     if (fixtures.length < FIXTURES_PER_GAMEWEEK) {
       console.log(
-        `Current gameweek ${currentGameweek.id} has only ${fixtures.length} fixtures. Not updating to completed.`
+        `Current gameweek ${currentGameweek.id} has only ${fixtures.length} fixtures. Not updating to completed.`,
       );
       return {
         incomplete: true,
@@ -75,7 +76,7 @@ export const createNewGameweek = async (
     id: string;
     number: number;
     seasonId: string;
-  } | null
+  } | null,
 ) => {
   const newGameweekNumber = currentGameweek ? currentGameweek.number + 1 : 1;
   const seasonId = currentGameweek
@@ -135,12 +136,12 @@ export const createNewGameweek = async (
           gameweekId: newGameweek.id,
           leagueId: league.id,
         },
-      })
-    )
+      }),
+    ),
   );
 
   console.log(
-    `Created new gameweek ${newGameweek.id} with number ${newGameweek.number}.`
+    `Created new gameweek ${newGameweek.id} with number ${newGameweek.number}.`,
   );
   return newGameweek;
 };
@@ -208,7 +209,7 @@ export const createNewFixtures = async () => {
       fixtures.map(async (fixture) => {
         if (!fixture.homeTeam || !fixture.awayTeam || !fixture.kickoff) {
           throw new Error(
-            "Fixture data is incomplete. Ensure all required fields are present."
+            "Fixture data is incomplete. Ensure all required fields are present.",
           );
         }
 
@@ -230,7 +231,7 @@ export const createNewFixtures = async () => {
             awayScore: fixture.awayScore ?? null,
           },
         });
-      })
+      }),
     ).finally(() => {
       console.log("Fixtures upserted successfully.");
     });
@@ -242,14 +243,14 @@ export const createNewFixtures = async () => {
     throw new Error(
       `Failed to create fixtures: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
 };
 
 export const createGameweekFixtures = async (
   fixtures: any[],
-  gameweek: { id: string }
+  gameweek: { id: string },
 ) => {
   if (!gameweek || !gameweek.id) {
     throw new Error("Gameweek ID is required to create gameweek fixtures");
@@ -271,7 +272,7 @@ export const createGameweekFixtures = async (
           },
         },
       });
-    })
+    }),
   );
 
   console.log(`Created ${gameweekFixtures.length} gameweek fixtures.`);
@@ -280,10 +281,10 @@ export const createGameweekFixtures = async (
 
 export const getGameweekTable = async (
   leagueId: string,
-  gameweekNumber: number
+  gameweekNumber: number,
 ) => {
   console.log(
-    `Fetching gameweek table for leagueId: ${leagueId}, gameweekNumber: ${gameweekNumber}`
+    `Fetching gameweek table for leagueId: ${leagueId}, gameweekNumber: ${gameweekNumber}`,
   );
 
   // 1. Get all league members
@@ -315,7 +316,7 @@ export const getGameweekTable = async (
   }
 
   const predictionsByUserId = Object.fromEntries(
-    gameweek.predictions.map((p) => [p.userId, p])
+    gameweek.predictions.map((p) => [p.userId, p]),
   );
 
   const members = leagueMembers.map((member) => {
@@ -359,4 +360,95 @@ export const getTotalGameweeks = async () => {
   });
 
   return totalGameweeks;
+};
+
+export const getCurrentGameweek = async () => {
+  const currentGameweek = await prisma.gameweek.findFirst({
+    where: {
+      status: "ACTIVE",
+    },
+  });
+
+  return currentGameweek;
+};
+
+export const upsertManualGameweekFixture = async (
+  gameweekId: string,
+  fixture: {
+    id?: string;
+    homeTeam: string;
+    awayTeam: string;
+    kickoff: string;
+    homeScore?: number | null;
+    awayScore?: number | null;
+    status?: FixtureStatus;
+    externalId?: number | null;
+  },
+) => {
+  const upsertedFixture = await prisma.fixture.upsert({
+    where: fixture.id
+      ? { id: fixture.id }
+      : {
+          kickoff_homeTeam_awayTeam: {
+            kickoff: new Date(fixture.kickoff),
+            homeTeam: fixture.homeTeam,
+            awayTeam: fixture.awayTeam,
+          },
+        },
+    update: {
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+      kickoff: new Date(fixture.kickoff),
+      homeScore: fixture.homeScore ?? null,
+      awayScore: fixture.awayScore ?? null,
+      status: fixture.status ?? FixtureStatus.SCHEDULED,
+      externalId: fixture.externalId ?? null,
+    },
+    create: {
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+      kickoff: new Date(fixture.kickoff),
+      homeScore: fixture.homeScore ?? null,
+      awayScore: fixture.awayScore ?? null,
+      status: fixture.status ?? FixtureStatus.SCHEDULED,
+      externalId: fixture.externalId ?? null,
+    },
+  });
+
+  if (!upsertedFixture) {
+    throw new Error("Failed to upsert fixture");
+  }
+
+  const existingGWFixture = await prisma.gameweekFixture.findFirst({
+    where: {
+      gameweekId,
+      fixtureId: upsertedFixture.id,
+    },
+  });
+
+  if (!existingGWFixture) {
+    await createGameweekFixtures([{ id: upsertedFixture.id }], {
+      id: gameweekId,
+    });
+  }
+
+  return upsertedFixture;
+};
+
+export const deleteManualGameweekFixture = async (
+  gameweekId: string,
+  fixtureId: string,
+) => {
+  await prisma.gameweekFixture.deleteMany({
+    where: {
+      gameweekId,
+      fixtureId,
+    },
+  });
+
+  await prisma.fixture.delete({
+    where: {
+      id: fixtureId,
+    },
+  });
 };

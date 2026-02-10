@@ -1,9 +1,6 @@
 import { auth } from "@/lib/auth";
 import Text from "@/components/Text/Text";
 import { getGameweekPredictions } from "@/lib/predictionAPI";
-import PredictionsForm from "./components/PredictionsForm";
-import PredictionsLive from "./components/PredictionsLive";
-import { getUserById } from "@/lib/userAPI";
 import { DateTime } from "luxon";
 import CurrentGameweekClient from "./components/CurrentGameweekClient";
 
@@ -15,12 +12,13 @@ export default async function CurrentGameweek({
   const session = await auth();
   const gameweek = await getGameweekPredictions(
     session?.user?.id,
-    params.currentGameweekId
+    params.currentGameweekId,
   );
 
   if (!session || !gameweek) {
     return <Text>Loading...</Text>;
   }
+  const role = session.user.role;
   const isSubmitted = gameweek.isSubmitted;
   const now = DateTime.now().setZone("Europe/London");
   const deadline = DateTime.fromISO(gameweek.deadline).setZone("Europe/London");
@@ -62,6 +60,7 @@ export default async function CurrentGameweek({
         sortedFixtures={sortedFixtures}
         deadline={gameweek.deadline}
         gameweekId={gameweek.gameweekId}
+        role={role}
       />
     </div>
   );
