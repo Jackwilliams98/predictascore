@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/scores",
-      "schedule": "0 23 * * 0"
+      "schedule": "0 23 * * 6,0"
     }
   ]
 }

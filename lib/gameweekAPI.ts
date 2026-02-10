@@ -40,7 +40,7 @@ export const updateCurrentGameweek = async () => {
 
     if (fixtures.length < FIXTURES_PER_GAMEWEEK) {
       console.log(
-        `Current gameweek ${currentGameweek.id} has only ${fixtures.length} fixtures. Not updating to completed.`
+        `Current gameweek ${currentGameweek.id} has only ${fixtures.length} fixtures. Not updating to completed.`,
       );
       return {
         incomplete: true,
@@ -76,7 +76,7 @@ export const createNewGameweek = async (
     id: string;
     number: number;
     seasonId: string;
-  } | null
+  } | null,
 ) => {
   const newGameweekNumber = currentGameweek ? currentGameweek.number + 1 : 1;
   const seasonId = currentGameweek
@@ -136,12 +136,12 @@ export const createNewGameweek = async (
           gameweekId: newGameweek.id,
           leagueId: league.id,
         },
-      })
-    )
+      }),
+    ),
   );
 
   console.log(
-    `Created new gameweek ${newGameweek.id} with number ${newGameweek.number}.`
+    `Created new gameweek ${newGameweek.id} with number ${newGameweek.number}.`,
   );
   return newGameweek;
 };
@@ -209,7 +209,7 @@ export const createNewFixtures = async () => {
       fixtures.map(async (fixture) => {
         if (!fixture.homeTeam || !fixture.awayTeam || !fixture.kickoff) {
           throw new Error(
-            "Fixture data is incomplete. Ensure all required fields are present."
+            "Fixture data is incomplete. Ensure all required fields are present.",
           );
         }
 
@@ -231,7 +231,7 @@ export const createNewFixtures = async () => {
             awayScore: fixture.awayScore ?? null,
           },
         });
-      })
+      }),
     ).finally(() => {
       console.log("Fixtures upserted successfully.");
     });
@@ -243,14 +243,14 @@ export const createNewFixtures = async () => {
     throw new Error(
       `Failed to create fixtures: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
 };
 
 export const createGameweekFixtures = async (
   fixtures: any[],
-  gameweek: { id: string }
+  gameweek: { id: string },
 ) => {
   if (!gameweek || !gameweek.id) {
     throw new Error("Gameweek ID is required to create gameweek fixtures");
@@ -272,7 +272,7 @@ export const createGameweekFixtures = async (
           },
         },
       });
-    })
+    }),
   );
 
   console.log(`Created ${gameweekFixtures.length} gameweek fixtures.`);
@@ -281,10 +281,10 @@ export const createGameweekFixtures = async (
 
 export const getGameweekTable = async (
   leagueId: string,
-  gameweekNumber: number
+  gameweekNumber: number,
 ) => {
   console.log(
-    `Fetching gameweek table for leagueId: ${leagueId}, gameweekNumber: ${gameweekNumber}`
+    `Fetching gameweek table for leagueId: ${leagueId}, gameweekNumber: ${gameweekNumber}`,
   );
 
   // 1. Get all league members
@@ -316,7 +316,7 @@ export const getGameweekTable = async (
   }
 
   const predictionsByUserId = Object.fromEntries(
-    gameweek.predictions.map((p) => [p.userId, p])
+    gameweek.predictions.map((p) => [p.userId, p]),
   );
 
   const members = leagueMembers.map((member) => {
@@ -382,7 +382,8 @@ export const upsertManualGameweekFixture = async (
     homeScore?: number | null;
     awayScore?: number | null;
     status?: FixtureStatus;
-  }
+    externalId?: number | null;
+  },
 ) => {
   const upsertedFixture = await prisma.fixture.upsert({
     where: fixture.id
@@ -401,6 +402,7 @@ export const upsertManualGameweekFixture = async (
       homeScore: fixture.homeScore ?? null,
       awayScore: fixture.awayScore ?? null,
       status: fixture.status ?? FixtureStatus.SCHEDULED,
+      externalId: fixture.externalId ?? null,
     },
     create: {
       homeTeam: fixture.homeTeam,
@@ -409,6 +411,7 @@ export const upsertManualGameweekFixture = async (
       homeScore: fixture.homeScore ?? null,
       awayScore: fixture.awayScore ?? null,
       status: fixture.status ?? FixtureStatus.SCHEDULED,
+      externalId: fixture.externalId ?? null,
     },
   });
 
@@ -434,7 +437,7 @@ export const upsertManualGameweekFixture = async (
 
 export const deleteManualGameweekFixture = async (
   gameweekId: string,
-  fixtureId: string
+  fixtureId: string,
 ) => {
   await prisma.gameweekFixture.deleteMany({
     where: {

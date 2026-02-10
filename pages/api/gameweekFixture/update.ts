@@ -6,7 +6,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   switch (req.method) {
     case "POST":
@@ -31,8 +31,16 @@ async function upsertFixtureHandler(req: NextApiRequest, res: NextApiResponse) {
     throw new Error("No active gameweek found");
   }
 
-  const { id, homeTeam, awayTeam, kickoff, homeScore, awayScore, status } =
-    fixture;
+  const {
+    id,
+    homeTeam,
+    awayTeam,
+    kickoff,
+    homeScore,
+    awayScore,
+    status,
+    externalId,
+  } = fixture;
 
   try {
     const fixture = await upsertManualGameweekFixture(gameweek.id, {
@@ -43,6 +51,7 @@ async function upsertFixtureHandler(req: NextApiRequest, res: NextApiResponse) {
       homeScore,
       awayScore,
       status,
+      externalId,
     });
     res.status(201).json(fixture);
   } catch (error) {

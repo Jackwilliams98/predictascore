@@ -143,7 +143,7 @@ export async function updateFixtureResults({
 
     // 4. For each GameweekPrediction, update total points, correct predictions and goal difference
     const gameweekPredictionIds = Array.from(
-      new Set(predictions.map((p) => p.gameweekPredictionId))
+      new Set(predictions.map((p) => p.gameweekPredictionId)),
     );
     for (const gwpId of gameweekPredictionIds) {
       const totalPoints = await prisma.prediction.aggregate({
@@ -210,7 +210,7 @@ export async function updateFixtureResults({
     });
 
     const userIdsWithPrediction = new Set(
-      usersWithPrediction.map((p) => p.userId)
+      usersWithPrediction.map((p) => p.userId),
     );
 
     // For each user, if they haven't submitted, create a penalty GameweekPrediction
@@ -281,33 +281,25 @@ export async function updateFixtureResults({
 
 export async function getGameweekFixtureData() {
   try {
-    const latestUpdate = await prisma.fixture.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-    });
-
     const now = new Date();
-    const THRESHOLD_MINUTES = 10;
 
-    if (
-      latestUpdate &&
-      now.getTime() - latestUpdate.updatedAt.getTime() <
-        THRESHOLD_MINUTES * 60 * 1000
-    ) {
-      console.log("Skipping fixture update: updated recently.");
-      return null;
-    }
+    const currentGameweek = await prisma.gameweek.findFirst({
+      where: {
+        status: "ACTIVE",
+      },
+      select: {
+        id: true,
+      },
+    });
 
     const fixtures = await prisma.fixture.findMany({
       where: {
         kickoff: {
           lte: now,
         },
-        OR: [
-          { status: "SCHEDULED" },
-          { status: "IN_PLAY" }, // LIVE
-          { status: "PAUSED" }, // LIVE
-        ],
+        gameweeks: {
+          some: { gameweekId: currentGameweek?.id },
+        },
       },
       select: {
         id: true,
@@ -340,14 +332,14 @@ export async function getGameweekFixtureData() {
 
       try {
         console.log(
-          `Fetching fixture data for externalId: ${fixture.externalId}`
+          `Fetching fixture data for externalId: ${fixture.externalId}`,
         );
         const response = await fetch(
           `https://api.football-data.org/v4/matches/${fixture.externalId}`,
           {
             method: "GET",
             headers,
-          }
+          },
         );
 
         if (!response.ok) {

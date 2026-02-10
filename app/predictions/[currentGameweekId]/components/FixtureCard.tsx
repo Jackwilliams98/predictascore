@@ -18,7 +18,7 @@ interface FixtureCardProps {
   prediction?: {
     homeScore: number | null;
     awayScore: number | null;
-  };
+  } | null;
   isEditGameweek?: boolean;
   isGameweekLive?: boolean;
   status?: FixtureStatus;
@@ -70,7 +70,17 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({
           )
         ) : (
           <div className={classes.flex} style={{ marginBottom: "8px" }}>
-            Prediction: {prediction?.homeScore}:{prediction?.awayScore}
+            {prediction &&
+            prediction.homeScore !== null &&
+            prediction.awayScore !== null ? (
+              <Text className={classes.fixtureCardPrediction}>
+                Predicted: {prediction.homeScore}:{prediction.awayScore}
+              </Text>
+            ) : (
+              <Text className={classes.fixtureCardPrediction}>
+                No Prediction
+              </Text>
+            )}
           </div>
         )}
         <div className={classes.flex}>{awayTeam}</div>

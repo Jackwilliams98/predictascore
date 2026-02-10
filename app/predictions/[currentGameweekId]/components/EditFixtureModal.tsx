@@ -27,10 +27,10 @@ const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
   const [editedHomeTeam, setEditedHomeTeam] = useState<string>(homeTeam ?? "");
   const [editedAwayTeam, setEditedAwayTeam] = useState<string>(awayTeam ?? "");
   const [editedKickoff, setEditedKickoff] = useState(
-    kickoff ? new Date(kickoff).toISOString().slice(0, 16) : ""
+    kickoff ? new Date(kickoff).toISOString().slice(0, 16) : "",
   );
   const [editedStatus, setEditedStatus] = useState<FixtureStatus>(
-    FixtureStatus.SCHEDULED
+    FixtureStatus.SCHEDULED,
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,7 +39,7 @@ const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       setEditedHomeTeam(homeTeam ?? "");
       setEditedAwayTeam(awayTeam ?? "");
       setEditedKickoff(
-        kickoff ? new Date(kickoff).toISOString().slice(0, 16) : ""
+        kickoff ? new Date(kickoff).toISOString().slice(0, 16) : "",
       );
       setEditedStatus(FixtureStatus.SCHEDULED);
     }
@@ -62,6 +62,7 @@ const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
             awayTeam: editedAwayTeam,
             kickoff: new Date(editedKickoff).toISOString(),
             status: editedStatus,
+            externalId: null,
           },
         }),
       });

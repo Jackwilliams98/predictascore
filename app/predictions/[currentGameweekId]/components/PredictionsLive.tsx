@@ -26,10 +26,6 @@ export default function PredictionsLive({
           status,
         } = fixture;
 
-        if (!prediction) {
-          return null;
-        }
-
         return (
           <div key={id}>
             <FixtureCard

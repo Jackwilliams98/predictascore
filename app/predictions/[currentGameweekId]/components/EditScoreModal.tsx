@@ -31,13 +31,13 @@ const EditScoreModal: React.FC<EditFixtureModalProps> = ({
   const router = useRouter();
 
   const [editedHomeScore, setEditedHomeScore] = useState<number | null>(
-    homeScore ?? null
+    homeScore ?? null,
   );
   const [editedAwayScore, setEditedAwayScore] = useState<number | null>(
-    awayScore ?? null
+    awayScore ?? null,
   );
   const [editedStatus, setEditedStatus] = useState<FixtureStatus>(
-    status ? status : FixtureStatus.SCHEDULED
+    status ? status : FixtureStatus.SCHEDULED,
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -98,7 +98,7 @@ const EditScoreModal: React.FC<EditFixtureModalProps> = ({
       <Dialog.Positioner>
         <Dialog.Content>
           <Dialog.Header>
-            <Dialog.Title>
+            <Dialog.Title style={{ maxWidth: "90%" }}>
               Update {homeTeam} vs {awayTeam}
             </Dialog.Title>
           </Dialog.Header>

@@ -12,7 +12,7 @@ export default async function CurrentGameweek({
   const session = await auth();
   const gameweek = await getGameweekPredictions(
     session?.user?.id,
-    params.currentGameweekId
+    params.currentGameweekId,
   );
 
   if (!session || !gameweek) {

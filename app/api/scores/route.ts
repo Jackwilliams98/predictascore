@@ -3,6 +3,7 @@ import type { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest, res: NextResponse) {
   const authHeader = req.headers.get("authorization");
+
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response("Unauthorized", {
       status: 401,
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
         const { id, homeScore, awayScore, status } = fixture; // scores
 
         console.log(
-          `Processing fixture with id: ${id}, homeScore: ${homeScore}, awayScore: ${awayScore}, status: ${status}`
+          `Processing fixture with id: ${id}, homeScore: ${homeScore}, awayScore: ${awayScore}, status: ${status}`,
         );
 
         if (
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
           awayScore,
           status,
         });
-      })
+      }),
     );
     console.log("Fixture results updated successfully.");
     return Response.json({ success: true });
