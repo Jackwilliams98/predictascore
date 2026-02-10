@@ -43,7 +43,7 @@ export default function CurrentGameweekClient({
       await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/scores`, {
         method: "GET",
         headers: {
-          authorization: `Bearer ${process.env.CRON_SECRET}`,
+          isAdmin: isAdmin ? "true" : "false",
         },
         cache: "no-store",
       });

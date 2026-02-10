@@ -3,8 +3,9 @@ import type { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest, res: NextResponse) {
   const authHeader = req.headers.get("authorization");
+  const isAdmin = req.headers.get("isAdmin") === "true";
 
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && !isAdmin) {
     return new Response("Unauthorized", {
       status: 401,
     });
