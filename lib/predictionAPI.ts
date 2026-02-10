@@ -82,6 +82,7 @@ export const getGameweekPredictions = async (
               kickoff: true,
               homeScore: true,
               awayScore: true,
+              status: true,
             },
           },
         },
@@ -117,6 +118,7 @@ export const getGameweekPredictions = async (
 
     return {
       id: fixture.fixture.id,
+      status: fixture.fixture.status,
       homeTeam: fixture.fixture.homeTeam,
       homeScore: fixture.fixture.homeScore,
       awayTeam: fixture.fixture.awayTeam,

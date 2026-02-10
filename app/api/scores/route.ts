@@ -3,7 +3,9 @@ import type { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest, res: NextResponse) {
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const isAdmin = req.headers.get("isAdmin") === "true";
+
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && !isAdmin) {
     return new Response("Unauthorized", {
       status: 401,
     });
@@ -18,25 +20,31 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     await Promise.all(
       gameweekFixtures.map(async (fixture) => {
-        const { externalId, homeScore, awayScore, status } = fixture; // full time scores
+        const { id, homeScore, awayScore, status } = fixture; // scores
+
+        console.log(
+          `Processing fixture with id: ${id}, homeScore: ${homeScore}, awayScore: ${awayScore}, status: ${status}`,
+        );
 
         if (
-          homeScore === null ||
-          awayScore === null ||
-          (status !== "FINISHED" && status !== "IN_PLAY" && status !== "PAUSED")
+          status !== "FINISHED" &&
+          status !== "IN_PLAY" &&
+          status !== "PAUSED"
         ) {
-          console.warn(
-            `Skipping fixture with externalId ${externalId} due to missing scores.`
-          );
-          return;
+          console.warn(`Skipping fixture ${id} due to ${status} status`);
+          return Response.json({
+            success: false,
+            message: `Skipping fixture ${id} due to ${status} status`,
+          });
         }
+
         await updateFixtureResults({
-          externalId,
+          id,
           homeScore,
           awayScore,
           status,
         });
-      })
+      }),
     );
     console.log("Fixture results updated successfully.");
     return Response.json({ success: true });

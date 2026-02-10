@@ -17,20 +17,20 @@ const headers = {
  * @param fixtureResults Array of objects: { fixtureId, homeScore, awayScore }
  */
 export async function updateFixtureResults({
-  externalId,
+  id,
   homeScore,
   awayScore,
   status,
 }: {
-  externalId: number;
-  homeScore: number;
-  awayScore: number;
+  id: string;
+  homeScore: number | null;
+  awayScore: number | null;
   status: FixtureStatus;
 }) {
   try {
     // 1. Update the Fixture
     const fixture = await prisma.fixture.update({
-      where: { externalId },
+      where: { id },
       data: {
         homeScore: homeScore,
         awayScore: awayScore,
@@ -52,8 +52,13 @@ export async function updateFixtureResults({
       let points = 0;
       let correctScore = false;
 
-      // No score submitted
-      if (prediction.homeScore === null || prediction.awayScore === null) {
+      // No score submitted or fixture scores are null
+      if (
+        prediction.homeScore === null ||
+        prediction.awayScore === null ||
+        homeScore === null ||
+        awayScore === null
+      ) {
         points = 0;
       } else if (homeScore === awayScore) {
         // Draw
@@ -124,7 +129,11 @@ export async function updateFixtureResults({
       }
 
       const goalDifference =
-        prediction.homeScore + prediction.awayScore - (homeScore + awayScore);
+        homeScore === null || awayScore === null
+          ? 0
+          : prediction.homeScore +
+            prediction.awayScore -
+            (homeScore + awayScore);
 
       await prisma.prediction.update({
         where: { id: prediction.id },
@@ -134,7 +143,7 @@ export async function updateFixtureResults({
 
     // 4. For each GameweekPrediction, update total points, correct predictions and goal difference
     const gameweekPredictionIds = Array.from(
-      new Set(predictions.map((p) => p.gameweekPredictionId))
+      new Set(predictions.map((p) => p.gameweekPredictionId)),
     );
     for (const gwpId of gameweekPredictionIds) {
       const totalPoints = await prisma.prediction.aggregate({
@@ -201,7 +210,7 @@ export async function updateFixtureResults({
     });
 
     const userIdsWithPrediction = new Set(
-      usersWithPrediction.map((p) => p.userId)
+      usersWithPrediction.map((p) => p.userId),
     );
 
     // For each user, if they haven't submitted, create a penalty GameweekPrediction
@@ -272,36 +281,32 @@ export async function updateFixtureResults({
 
 export async function getGameweekFixtureData() {
   try {
-    const latestUpdate = await prisma.fixture.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-    });
-
     const now = new Date();
-    const THRESHOLD_MINUTES = 10;
 
-    if (
-      latestUpdate &&
-      now.getTime() - latestUpdate.updatedAt.getTime() <
-        THRESHOLD_MINUTES * 60 * 1000
-    ) {
-      console.log("Skipping fixture update: updated recently.");
-      return null;
-    }
+    const currentGameweek = await prisma.gameweek.findFirst({
+      where: {
+        status: "ACTIVE",
+      },
+      select: {
+        id: true,
+      },
+    });
 
     const fixtures = await prisma.fixture.findMany({
       where: {
         kickoff: {
           lte: now,
         },
-        OR: [
-          { status: "SCHEDULED" },
-          { status: "IN_PLAY" }, // LIVE
-          { status: "PAUSED" }, // LIVE
-        ],
+        gameweeks: {
+          some: { gameweekId: currentGameweek?.id },
+        },
       },
       select: {
+        id: true,
         externalId: true,
+        homeScore: true,
+        awayScore: true,
+        status: true,
       },
     });
 
@@ -312,16 +317,29 @@ export async function getGameweekFixtureData() {
 
     const fixtureData = [];
     for (const fixture of fixtures) {
+      if (!fixture.externalId) {
+        const { id, homeScore, awayScore, status } = fixture;
+
+        fixtureData.push({
+          id,
+          homeScore,
+          awayScore,
+          status,
+        });
+
+        continue;
+      }
+
       try {
         console.log(
-          `Fetching fixture data for externalId: ${fixture.externalId}`
+          `Fetching fixture data for externalId: ${fixture.externalId}`,
         );
         const response = await fetch(
           `https://api.football-data.org/v4/matches/${fixture.externalId}`,
           {
             method: "GET",
             headers,
-          }
+          },
         );
 
         if (!response.ok) {
@@ -345,6 +363,7 @@ export async function getGameweekFixtureData() {
           fullTime.away !== null ? fullTime.away : halfTime.away;
 
         fixtureData.push({
+          id: fixture.id,
           externalId: id,
           homeScore,
           awayScore,
