@@ -1,7 +1,7 @@
 import { Loading } from "@/components";
 import Text from "@/components/Text/Text";
 import { auth } from "@/lib/auth";
-import { getLeagueInfo } from "@/lib/leagueAPI";
+import { getCurrentSeason, getLeagueInfo } from "@/lib/leagueAPI";
 import LeaveLeagueButton from "./components/LeaveLeagueButton";
 import { Tabs } from "@chakra-ui/react";
 import OverallTable from "./components/OverallTable";
@@ -16,6 +16,7 @@ export default async function League({
 }) {
   const session = await auth();
   const league = await getLeagueInfo(params.leagueId);
+  const season = await getCurrentSeason();
   const totalGameweeks = await getTotalGameweeks();
 
   if (!session || !league) {
@@ -40,6 +41,7 @@ export default async function League({
         <Tabs.Content value="gameweek">
           <GameweekTable
             leagueId={params.leagueId}
+            seasonId={season.id}
             session={session}
             totalGameweeks={totalGameweeks}
           />

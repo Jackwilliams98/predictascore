@@ -28,19 +28,15 @@ export const updateCurrentGameweek = async () => {
     const fixtures = await prisma.gameweekFixture.findMany({
       where: {
         gameweekId: currentGameweek.id,
-        fixture: {
-          homeScore: { not: null },
-          awayScore: { not: null },
-        },
       },
       include: {
         fixture: true,
       },
     });
 
-    if (fixtures.length < FIXTURES_PER_GAMEWEEK) {
+    if (fixtures.some((f) => f.fixture.status !== FixtureStatus.FINISHED)) {
       console.log(
-        `Current gameweek ${currentGameweek.id} has only ${fixtures.length} fixtures. Not updating to completed.`,
+        `Current gameweek ${currentGameweek.id} has incomplete fixtures. Not updating to completed.`,
       );
       return {
         incomplete: true,
@@ -281,6 +277,7 @@ export const createGameweekFixtures = async (
 
 export const getGameweekTable = async (
   leagueId: string,
+  seasonId: string,
   gameweekNumber: number,
 ) => {
   console.log(
@@ -289,7 +286,10 @@ export const getGameweekTable = async (
 
   // 1. Get all league members
   const leagueMembers = await prisma.leagueMember.findMany({
-    where: { leagueId },
+    where: {
+      leagueId,
+      AND: [{ leftAt: null }, { season: { isActive: true } }],
+    },
     include: {
       user: { select: { id: true, name: true, avatar: true } },
     },
@@ -297,7 +297,7 @@ export const getGameweekTable = async (
 
   // 2. Get the gameweek
   const gameweek = await prisma.gameweek.findFirst({
-    where: { number: gameweekNumber },
+    where: { number: gameweekNumber, seasonId: seasonId },
     select: {
       id: true,
       predictions: {
@@ -446,9 +446,26 @@ export const deleteManualGameweekFixture = async (
     },
   });
 
-  await prisma.fixture.delete({
+  await prisma.gameweekPrediction.deleteMany({
     where: {
-      id: fixtureId,
+      gameweekId,
     },
   });
+
+  await prisma.prediction.deleteMany({
+    where: {
+      fixtureId,
+    },
+  });
+
+  try {
+    await prisma.fixture.delete({
+      where: {
+        id: fixtureId,
+      },
+    });
+  } catch (error) {
+    console.error(`Error deleting fixture with id ${fixtureId}:`, error);
+    throw new Error(`Failed to delete fixture with id ${fixtureId}`);
+  }
 };

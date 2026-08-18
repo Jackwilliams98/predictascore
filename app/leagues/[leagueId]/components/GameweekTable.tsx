@@ -9,10 +9,12 @@ import Text from "@/components/Text/Text";
 
 export default function GameweekTable({
   leagueId,
+  seasonId,
   session,
   totalGameweeks,
 }: {
   leagueId: string;
+  seasonId: string;
   session: any;
   totalGameweeks: number;
 }) {
@@ -26,13 +28,13 @@ export default function GameweekTable({
 
       try {
         const response = await fetch(
-          `/api/getGameweek?leagueId=${leagueId}&gameweekNumber=${gameweekNumber}`,
+          `/api/getGameweek?leagueId=${leagueId}&seasonId=${seasonId}&gameweekNumber=${gameweekNumber}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (!response.ok) {
