@@ -11,7 +11,7 @@ export const getCurrentSeason = async () => {
 };
 
 export const getActiveUserLeagues = async (
-  userId: string | undefined
+  userId: string | undefined,
 ): Promise<League[]> => {
   if (!userId) {
     console.error("Error: userId is undefined");
@@ -21,7 +21,7 @@ export const getActiveUserLeagues = async (
   const userLeagues = await prisma.leagueMember.findMany({
     where: {
       userId,
-      AND: { leftAt: null },
+      AND: [{ leftAt: null }, { season: { isActive: true } }],
     },
     include: {
       league: {
@@ -40,7 +40,7 @@ export const getActiveUserLeagues = async (
 };
 
 export const getUserLeagues = async (
-  userId: string | undefined
+  userId: string | undefined,
 ): Promise<UserLeagueInfo[]> => {
   if (!userId) {
     console.error("Error: userId is undefined");
@@ -55,6 +55,7 @@ export const getUserLeagues = async (
       const overallRank = await prisma.leagueMember.count({
         where: {
           leagueId: leagueMember.leagueId,
+          seasonId: leagueMember.seasonId,
           points: {
             gt: leagueMember.points,
           },
@@ -72,12 +73,15 @@ export const getUserLeagues = async (
 
       if (!currentGameweekId) {
         throw new Error(
-          `Current gameweek not found for league ${leagueMember.leagueId}`
+          `Current gameweek not found for league ${leagueMember.leagueId}`,
         );
       }
 
       const leagueMembers = await prisma.leagueMember.findMany({
-        where: { leagueId: leagueMember.leagueId },
+        where: {
+          leagueId: leagueMember.leagueId,
+          seasonId: leagueMember.seasonId,
+        },
         include: {
           user: { select: { id: true } },
         },
@@ -97,7 +101,7 @@ export const getUserLeagues = async (
             correctPredictions: gameweekPrediction?.correctPredictions ?? 0,
             goalDifference: gameweekPrediction?.goalDifference ?? 0,
           };
-        })
+        }),
       );
 
       const sortedMembers = members.slice().sort((a, b) => {
@@ -117,7 +121,7 @@ export const getUserLeagues = async (
         overallPoints: leagueMember.points,
         gameweekRank: gameweekRank || "...",
       };
-    })
+    }),
   );
 
   return leaguesWithRank;
@@ -133,10 +137,11 @@ export const getLeagueInfo = async (leagueId: string) => {
 };
 
 // Get all members of a league
-export const getLeagueMembers = async (leagueId: string) => {
+export const getLeagueMembers = async (leagueId: string, seasonId: string) => {
   const leagueMembers = await prisma.leagueMember.findMany({
     where: {
       leagueId,
+      seasonId,
     },
     include: {
       user: {

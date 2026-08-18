@@ -4,7 +4,7 @@ import { getGameweekTable } from "@/lib/gameweekAPI";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   switch (req.method) {
     case "GET":
@@ -19,19 +19,20 @@ export default async function handler(
 
 async function getGameweekTableHandler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
-  const { leagueId, gameweekNumber } = req.query;
+  const { leagueId, seasonId, gameweekNumber } = req.query;
 
   console.log("getGameweekTableHandler called with:", {
     leagueId,
+    seasonId,
     gameweekNumber,
   });
 
-  if (!leagueId || !gameweekNumber) {
+  if (!leagueId || !seasonId || !gameweekNumber) {
     return res
       .status(400)
-      .json({ error: "Missing leagueId or gameweekNumber" });
+      .json({ error: "Missing leagueId, seasonId, or gameweekNumber" });
   }
 
   // Convert gameweekNumber to a number
@@ -46,7 +47,8 @@ async function getGameweekTableHandler(
   try {
     const response = await getGameweekTable(
       leagueId as string,
-      parsedGameweekNumber
+      seasonId as string,
+      parsedGameweekNumber,
     );
     return res.status(200).json(response);
   } catch (error) {
