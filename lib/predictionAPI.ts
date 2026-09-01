@@ -9,7 +9,7 @@ import {
 } from "@/app/types";
 
 export const getUserPredictionLeagues = async (
-  userId: string
+  userId: string,
 ): Promise<UserPredictionLeagueInfo[]> => {
   if (!userId) {
     console.error("Error: userId is undefined");
@@ -54,7 +54,7 @@ export const getUserPredictionLeagues = async (
         deadline: league.currentGameweek.deadline.toISOString(),
         isSubmitted,
       };
-    })
+    }),
   );
 
   return leaguesWithInfo;
@@ -62,7 +62,7 @@ export const getUserPredictionLeagues = async (
 
 export const getGameweekPredictions = async (
   userId: string,
-  gameweekId: string
+  gameweekId: string,
 ): Promise<GameweekInfo | null> => {
   if (!userId || !gameweekId) {
     console.error("Error: userId or gameweekId is undefined");
@@ -110,7 +110,7 @@ export const getGameweekPredictions = async (
 
   const fixturesWithPredictions = gameweekInfo?.fixtures.map((fixture) => {
     const prediction = gameweekInfo?.predictions.find((pred) =>
-      pred.predictions.some((p) => p.fixtureId === fixture.fixture.id)
+      pred.predictions.some((p) => p.fixtureId === fixture.fixture.id),
     );
     const predictionDetails = prediction
       ? prediction.predictions.find((p) => p.fixtureId === fixture.fixture.id)
@@ -149,7 +149,7 @@ export const upsertGameweekPredictions = async (
   userId: string,
   gameweekId: string,
   predictions: UserPredictions,
-  deadline: string
+  deadline: string,
 ): Promise<GameweekFixture | null> => {
   if (!userId || !gameweekId || !predictions) {
     console.error("Error: userId, gameweekId, or prediction is undefined");
@@ -164,23 +164,13 @@ export const upsertGameweekPredictions = async (
     throw new Error("Deadline has already passed");
   }
 
-  const league = await prisma.leagueMember.findFirst({
-    where: {
-      userId,
-      league: {
-        currentGameweek: {
-          id: gameweekId,
-        },
-      },
-    },
-    select: {
-      seasonId: true,
-      leagueId: true,
-    },
+  const gameweek = await prisma.gameweek.findUnique({
+    where: { id: gameweekId },
+    select: { seasonId: true },
   });
 
-  if (!league) {
-    console.error("Error: League not found for user and gameweek");
+  if (!gameweek) {
+    console.error("Error: Gameweek not found");
     return null;
   }
 
@@ -196,7 +186,7 @@ export const upsertGameweekPredictions = async (
       userId,
       // leagueId: league.leagueId, update when unique fixtures per league is implemented
       gameweekId,
-      seasonId: league.seasonId,
+      seasonId: gameweek.seasonId,
       submitted: true,
     },
   });
